@@ -589,8 +589,13 @@ onValue(ref(db, 'cuadranteData'), (snapshot) => {
 
 // 2. GUARDAR CAMBIOS: Solo guarda si no estamos bloqueados
 window.guardarEnNube = function(datos) {
-  if (bloqueado) return; // Si estamos recibiendo datos de la nube, no guardes nada
-  set(ref(db, 'cuadranteData'), datos);
+  if (bloqueado) return; 
+  console.log("Enviando datos a Firebase...", datos); // Esto te dirá en la consola si funciona
+  set(ref(db, 'cuadranteData'), datos).then(() => {
+    console.log("¡Datos subidos con éxito!");
+  }).catch((error) => {
+    console.error("Error al subir:", error);
+  });
 };
 
 // 3. INTERCEPTOR SEGURO
