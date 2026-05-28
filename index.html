@@ -573,21 +573,26 @@
   const db = getFirestore(app);
   const docRef = doc(db, "usuarios", "datos_cuadrante");
 
-  // 1. ESCUCHAR CAMBIOS: Cuando algo cambie en la nube, se actualiza tu pantalla
-  onSnapshot(docRef, (doc) => {
-    if (doc.exists()) {
-      const datosNube = JSON.stringify(doc.data());
-      localStorage.setItem('cuadranteData', datosNube);
-      location.reload(); // Recarga para mostrar los nuevos datos
+// Asegúrate de tener estas funciones importadas de firebase-database.js
+const db = getDatabase();
+
+// 1. ESCUCHAR CAMBIOS: Sincroniza móvil con PC en tiempo real
+onValue(ref(db, 'cuadranteData'), (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    // Si los datos en la nube son distintos a los locales, actualizamos
+    if (localStorage.getItem('cuadranteData') !== JSON.stringify(data)) {
+      localStorage.setItem('cuadranteData', JSON.stringify(data));
+      location.reload(); // Recarga para mostrar cambios
     }
-  });
+  }
+});
 
-
-   // 2. GUARDAR CAMBIOS: Función que llamarás cada vez que modifiques tu cuadrante
-  window.guardarEnNube = async function(datos) {
-    await setDoc(docRef, datos);
-    localStorage.setItem('cuadranteData', JSON.stringify(datos));
-  };
+// 2. GUARDAR CAMBIOS: Esta función envía los datos a la nube
+window.guardarEnNube = function(datos) {
+  set(ref(db, 'cuadranteData'), datos); // Envía a Realtime Database
+  localStorage.setItem('cuadranteData', JSON.stringify(datos));
+};
 // ESTE TRUCO REEMPLAZA AUTOMÁTICAMENTE EL GUARDADO ANTIGUO
   const originalSetItem = localStorage.setItem;
   localStorage.setItem = function(key, value) {
