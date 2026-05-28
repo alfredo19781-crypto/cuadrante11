@@ -573,28 +573,31 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app); 
 
-// 2. ESCUCHAR CAMBIOS: Sincroniza móvil con PC en tiempo real
+// Variable para evitar el bucle
+let bloqueado = false;
+
+// 1. ESCUCHAR CAMBIOS: Sincroniza móvil con PC
 onValue(ref(db, 'cuadranteData'), (snapshot) => {
   const data = snapshot.val();
   if (data) {
-    if (localStorage.getItem('cuadranteData') !== JSON.stringify(data)) {
-      localStorage.setItem('cuadranteData', JSON.stringify(data));
-      location.reload(); 
-    }
+    bloqueado = true; // Bloqueamos antes de escribir para que no se dispare el guardado
+    localStorage.setItem('cuadranteData', JSON.stringify(data));
+    bloqueado = false; // Desbloqueamos
+    location.reload(); 
   }
 });
 
-// 3. GUARDAR CAMBIOS: Esta función envía los datos a la nube
+// 2. GUARDAR CAMBIOS: Solo guarda si no estamos bloqueados
 window.guardarEnNube = function(datos) {
-  set(ref(db, 'cuadranteData'), datos); 
-  localStorage.setItem('cuadranteData', JSON.stringify(datos));
+  if (bloqueado) return; // Si estamos recibiendo datos de la nube, no guardes nada
+  set(ref(db, 'cuadranteData'), datos);
 };
 
-// 4. TRUCO PARA INTERCEPTAR GUARDADO
+// 3. INTERCEPTOR SEGURO
 const originalSetItem = localStorage.setItem;
 localStorage.setItem = function(key, value) {
   originalSetItem.apply(this, arguments);
-  if (key === 'cuadranteData') {
+  if (key === 'cuadranteData' && !bloqueado) {
     window.guardarEnNube(JSON.parse(value));
   }
 };
