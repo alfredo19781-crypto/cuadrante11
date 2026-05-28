@@ -576,14 +576,15 @@ const db = getDatabase(app);
 // Variable para evitar el bucle
 let bloqueado = false;
 
-// 1. ESCUCHAR CAMBIOS: Sincroniza móvil con PC
+// 1. ESCUCHAR CAMBIOS: Solo actualiza el localStorage, NO refresca la página
 onValue(ref(db, 'cuad_alfredo_v122_data'), (snapshot) => {
   const data = snapshot.val();
   if (data) {
-    bloqueado = true; // Bloqueamos antes de escribir para que no se dispare el guardado
+    bloqueado = true;
     localStorage.setItem('cuad_alfredo_v122_data', JSON.stringify(data));
-    bloqueado = false; // Desbloqueamos
-    location.reload(); 
+    bloqueado = false;
+    // location.reload();  <-- ¡HEMOS BORRADO ESTO PARA QUE NO PARPADEE!
+    console.log("Datos recibidos y actualizados en memoria.");
   }
 });
 
