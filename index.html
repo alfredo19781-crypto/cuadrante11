@@ -556,6 +556,47 @@
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
-  
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
+    authDomain: "cuadrantealfredo-8fb83.firebaseapp.com",
+    projectId: "cuadrantealfredo-8fb83",
+    storageBucket: "cuadrantealfredo-8fb83.firebasestorage.app",
+    messagingSenderId: "220264725344",
+    appId: "1:220264725344:web:2541e92d3d396aa53d7c05"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const docRef = doc(db, "usuarios", "datos_cuadrante");
+
+  // 1. ESCUCHAR CAMBIOS: Cuando algo cambie en la nube, se actualiza tu pantalla
+  onSnapshot(docRef, (doc) => {
+    if (doc.exists()) {
+      const datosNube = JSON.stringify(doc.data());
+      localStorage.setItem('cuadranteData', datosNube);
+      location.reload(); // Recarga para mostrar los nuevos datos
+    }
+  });
+
+
+   // 2. GUARDAR CAMBIOS: Función que llamarás cada vez que modifiques tu cuadrante
+  window.guardarEnNube = async function(datos) {
+    await setDoc(docRef, datos);
+    localStorage.setItem('cuadranteData', JSON.stringify(datos));
+  };
+// ESTE TRUCO REEMPLAZA AUTOMÁTICAMENTE EL GUARDADO ANTIGUO
+  const originalSetItem = localStorage.setItem;
+  localStorage.setItem = function(key, value) {
+    originalSetItem.apply(this, arguments);
+    if (key === 'cuadranteData') {
+      window.guardarEnNube(JSON.parse(value));
+    }
+  };    
+  };
+</script>
 </body>
 </html>
