@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Cuadrante Alfredo Multianual V12.15</title>
+  <title>Cuadrante Alfredo Multianual V12.16</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -64,7 +64,6 @@
       const [tempTipo12h, setTempTipo12h] = useState("D");
       const [mesVisible, setMesVisible] = useState(new Date().getMonth());
 
-      // Estados para las subventanas internas de backup
       const [textoExportado, setTextoExportado] = useState("");
       const [mostrarModalImportar, setMostrarModalImportar] = useState(false);
       const [textoAImportar, setTextoAImportar] = useState("");
@@ -73,14 +72,9 @@
       useEffect(() => { localStorage.setItem("user_alfredo_v122_config", JSON.stringify(user)); }, [user]);
       useEffect(() => { localStorage.setItem("cuad_alfredo_v122_data", JSON.stringify(selected)); }, [selected]);
 
-      // MÓDULO EXPORTAR INMUNE A BLOQUEOS
       const manejarExportar = () => {
         try {
-          const datosCompletos = {
-            versionBackup: "12.15",
-            userConfig: user,
-            selectedData: selected
-          };
+          const datosCompletos = { versionBackup: "12.16", userConfig: user, selectedData: selected };
           const textoCifrado = btoa(unescape(encodeURIComponent(JSON.stringify(datosCompletos))));
           setTextoExportado(textoCifrado);
         } catch (error) {
@@ -88,7 +82,6 @@
         }
       };
 
-      // MÓDULO IMPORTAR INMUNE A BLOQUEOS
       const manejarImportar = () => {
         if (!textoAImportar.trim()) return alert("Por favor, pega un código válido primero.");
         try {
@@ -105,7 +98,7 @@
             alert("El código introducido no contiene datos válidos.");
           }
         } catch (err) {
-          alert("Error al restaurar los datos. Comprueba que has pegado el texto completo sin alteraciones.");
+          alert("Error al restaurar los datos.");
         }
       };
 
@@ -114,16 +107,13 @@
         const dYear = parseInt(parts[0]);
         const dMes = parseInt(parts[1]);
         const dDia = parseInt(parts[2]);
-
         let periodoEncontrado = null;
         (user.periodos || []).forEach(p => {
           if (!p || !p.y || !p.mIni || !p.dIni || !p.mFin || !p.dFin) return;
           const fInicio = new Date(p.y, p.mIni - 1, p.dIni);
           const fFin = new Date(p.y, p.mFin - 1, p.dFin);
           const fActual = new Date(dYear, dMes - 1, dDia);
-          if (fActual >= fInicio && fActual <= fFin) {
-            periodoEncontrado = p;
-          }
+          if (fActual >= fInicio && fActual <= fFin) { periodoEncontrado = p; }
         });
         return periodoEncontrado;
       };
@@ -133,15 +123,11 @@
         const dia = d.getDate(); const mes = d.getMonth() + 1; const anio = d.getFullYear();
         const fijos = ["1-1", "6-1", "1-5", "15-8", "8-9", "12-10", "1-11", "6-12", "8-12", "25-12", "24-6"];
         if (fijos.includes(`${dia}-${mes}`)) return true;
-
         let domingosMayo = 0; let diaArgeme = 0;
         for (let i = 1; i <= 14; i++) {
-          if (new Date(anio, 4, i).getDay() === 0) {
-            domingosMayo++; if (domingosMayo === 2) { diaArgeme = i + 1; break; }
-          }
+          if (new Date(anio, 4, i).getDay() === 0) { domingosMayo++; if (domingosMayo === 2) { diaArgeme = i + 1; break; } }
         }
         if (mes === 5 && dia === diaArgeme) return true;
-
         const a = anio % 19; const b = anio % 4; const c = anio % 7;
         const d_g = (19 * a + 24) % 30; const e = (2 * b + 4 * c + 6 * d_g + 5) % 7;
         const marzo = 22 + d_g + e;
@@ -156,60 +142,22 @@
 
       const stats = useMemo(() => {
         let totalJ = 0;
-        
         Object.entries(selected).forEach(([dk, data]) => {
           if (data && data.jornada) {
             const parts = dk.split("-");
-            const dYear = parseInt(parts[0]);
-            
-            if (dYear === year) {
+            if (parseInt(parts[0]) === year) {
               const pVacas = getVacationPeriod(dk);
-              if (!pVacas || pVacas.esProrroga) {
-                totalJ += (data.jornada / 8);
-              }
+              if (!pVacas || pVacas.esProrroga) { totalJ += (data.jornada / 8); }
             }
           }
         });
-
-        (user.periodos || []).forEach(p => {
-          if (!p || !p.y || !p.mIni || !p.dIni || !p.mFin || !p.dFin) return;
-          
-          const anioBolsaAfectada = p.esProrroga ? (p.y - 1) : p.y;
-
-          if (anioBolsaAfectada === year && p.esProrroga) {
-            let fInicio = new Date(p.y, p.mIni - 1, p.dIni);
-            let fFin = new Date(p.y, p.mFin - 1, p.dFin);
-            let aux = new Date(fInicio);
-
-            while (aux <= fFin) {
-              const dkAux = toDateKey(aux.getFullYear(), aux.getMonth(), aux.getDate());
-              const dataDia = selected[dkAux] || {};
-              if (dataDia.jornada) {
-                totalJ -= (dataDia.jornada / 8);
-              }
-              aux.setDate(aux.getDate() + 1);
-            }
-          }
-        });
-
         const ant = year - (user.ingreso || 2008);
         const extraVacas = ant >= 30 ? 4 : ant >= 25 ? 3 : ant >= 20 ? 2 : ant >= 15 ? 1 : 0;
         const objetivo = 193 - extraVacas;
         const bolsaExcesos = Math.max(0, Math.round(totalJ - objetivo));
-
-        const pedidosExc = (user.excesos || []).filter(e => {
-          if (!e || !e.dia || !e.mes || !e.turno || e.turno === "-") return false;
-          const anioBolsa = e.esProrroga ? (e.y - 1) : e.y;
-          return anioBolsa === year;
-        }).length;
-
-        const pedidosAp = (user.ap || []).filter(a => {
-          if (!a || !a.dia || !a.mes || !a.turno || a.turno === "-") return false;
-          const anioBolsa = a.esProrroga ? (a.y - 1) : a.y;
-          return anioBolsa === year;
-        }).length;
-
-        return { real: totalJ, obj: objetivo, acumulados: bolsaExcesos, consumidos: pedidosExc, apConsumidos: pedidosAp };
+        const pedidosExc = (user.excesos || []).filter(e => e && e.turno && e.turno !== "-" && (e.esProrroga ? (e.y - 1) : e.y) === year).length;
+        const pedidosAp = (user.ap || []).filter(a => a && a.turno && a.turno !== "-" && (a.esProrroga ? (a.y - 1) : a.y) === year).length;
+        return { real: Math.max(0, totalJ), obj: objetivo, acumulados: bolsaExcesos, consumidos: pedidosExc, apConsumidos: pedidosAp };
       }, [selected, user, year]);
 
       const aplicarPatron = () => {
@@ -219,7 +167,6 @@
         const dw = parseInt(document.getElementById('cDW').value);
         const dd = parseInt(document.getElementById('cDD').value);
         if(!startRango || !endRango) return alert("Define inicio y fin");
-        
         let newS = {...selected};
         let dFin = new Date(endRango);
         let curr = new Date(startRango);
@@ -245,58 +192,33 @@
         if (!edit) return;
         const tipoModal = document.getElementById("modalTipo").value;
         let newS = { ...selected };
-        if (tipoModal === "libre") {
-          newS[edit.dk] = { descanso: true };
-        } else if (tipoModal === "24h") {
-          newS[edit.dk] = { jornada: 24, tipo: "24h" };
-        } else if (tipoModal === "12h-D") {
-          newS[edit.dk] = { jornada: 12, tipo: "12h-D" };
-        } else if (tipoModal === "12h-N") {
-          newS[edit.dk] = { jornada: 12, tipo: "12h-N" };
-        } else {
-          delete newS[edit.dk];
-        }
+        if (tipoModal === "libre") { newS[edit.dk] = { descanso: true }; } 
+        else if (tipoModal === "24h") { newS[edit.dk] = { jornada: 24, tipo: "24h" }; } 
+        else if (tipoModal === "12h-D") { newS[edit.dk] = { jornada: 12, tipo: "12h-D" }; } 
+        else if (tipoModal === "12h-N") { newS[edit.dk] = { jornada: 12, tipo: "12h-N" }; } 
+        else { delete newS[edit.dk]; }
         setSelected(newS);
         setEdit(null);
       };
 
       const listaExcFiltrada = useMemo(() => {
-        return (user.excesos || []).filter(e => {
-          if (!e || !e.dia || !e.mes || !e.turno || e.turno === "-") return false;
-          const esDeEsteAnioVisual = (e.y === year);
-          const esProrrogaDelAnioSiguiente = (e.y === year + 1 && e.esProrroga);
-          return esDeEsteAnioVisual || esProrrogaDelAnioSiguiente;
-        });
+        return (user.excesos || []).filter(e => e && e.turno && e.turno !== "-" && (e.y === year || (e.y === year + 1 && e.esProrroga)));
       }, [user.excesos, year]);
 
       const listaApFiltrada = useMemo(() => {
-        return (user.ap || []).filter(a => {
-          if (!a || !a.dia || !a.mes || !a.turno || a.turno === "-") return false;
-          const esDeEsteAnioVisual = (a.y === year);
-          const esProrrogaDelAnioSiguiente = (a.y === year + 1 && a.esProrroga);
-          return esDeEsteAnioVisual || esProrrogaDelAnioSiguiente;
-        });
+        return (user.ap || []).filter(a => a && a.turno && a.turno !== "-" && (a.y === year || (a.y === year + 1 && a.esProrroga)));
       }, [user.ap, year]);
 
       const getTurnosDisponibles = (tipo, idActual, anio, mes, dia) => {
         if (!mes || !dia) return ["M", "T", "N"];
         let turnosCogidos = [];
-        (user.excesos || []).forEach(e => {
-          if (e && e.id !== idActual && e.y === anio && e.mes === mes && e.dia === dia && e.turno !== "-") {
-            turnosCogidos.push(e.turno);
-          }
-        });
-        (user.ap || []).forEach(a => {
-          if (a && a.id !== idActual && a.y === anio && a.mes === mes && a.dia === dia && a.turno !== "-") {
-            turnosCogidos.push(a.turno);
-          }
-        });
+        (user.excesos || []).forEach(e => { if (e && e.id !== idActual && e.y === anio && e.mes === mes && e.dia === dia && e.turno !== "-") turnosCogidos.push(e.turno); });
+        (user.ap || []).forEach(a => { if (a && a.id !== idActual && a.y === anio && a.mes === mes && a.dia === dia && a.turno !== "-") turnosCogidos.push(a.turno); });
         return ["M", "T", "N"].filter(t => !turnosCogidos.includes(t));
       };
 
       return (
         <div>
-          {/* --- PANEL SELECCIÓN AÑO --- */}
           <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', background:'white', padding:'10px', borderRadius:'12px', border:'1px solid #E2E8F0'}}>
             <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
               <h1 style={{fontSize:'16px'}}>📅 CUADRANTE:</h1>
@@ -307,7 +229,6 @@
             <button onClick={() => setShowGear(true)} style={{fontSize:'20px', background:'none', border:'none', color:'#475569'}}><i className="fa-solid fa-gear"></i></button>
           </div>
 
-          {/* --- NAVEGACIÓN MES --- */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px', background:'#fff', borderRadius:'12px', marginBottom:'12px', border:'1px solid #E2E8F0' }}>
             <button onClick={() => setMesVisible(prev => (prev > 0 ? prev - 1 : 11))} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background:'#F1F5F9', fontSize:'16px' }}>⬅️</button>
             <div style={{ textAlign:'center' }}>
@@ -316,7 +237,6 @@
             <button onClick={() => setMesVisible(prev => (prev < 11 ? prev + 1 : 0))} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background:'#F1F5F9', fontSize:'16px' }}>➡️</button>
           </div>
 
-          {/* --- TARJETAS INDICADORAS --- */}
           <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'6px', marginBottom:'12px'}}>
             <div className="card" style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid var(--primary)'}}>
               <label style={{fontSize:'8px'}}>JORNADAS TOTAL</label>
@@ -344,55 +264,36 @@
             </div>
           </div>
 
-          {/* --- DESGLOSE EXCESOS DESPLEGABLE --- */}
           {verDetalleExc && (
             <div className="card" style={{borderColor:'#22C55E', background:'#F8FAFC'}}>
               <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
                 <h4 style={{fontSize:'12px', color:'#16A34A'}}>Historial Excesos - Bolsa {year}</h4>
                 <button onClick={() => setVerDetalleExc(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
               </div>
-              {listaExcFiltrada.length ? listaExcFiltrada.map((item, idx) => {
-                let etiquetaAnio = "";
-                if (item.y === year) {
-                  etiquetaAnio = item.esProrroga ? "(Año Anterior)" : `(${year})`;
-                } else if (item.y === year + 1 && item.esProrroga) {
-                  etiquetaAnio = `(${year + 1})`;
-                }
-                return (
-                  <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#DCFCE7', borderRadius:'6px', marginBottom:'4px', fontSize:'12px'}}>
-                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]} {etiquetaAnio}</b>
-                    <span>Turno: {item.turno}</span>
-                  </div>
-                );
-              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay excesos consumidos en esta bolsa.</p>}
+              {listaExcFiltrada.length ? listaExcFiltrada.map((item, idx) => (
+                <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#DCFCE7', borderRadius:'6px', marginBottom:'4px', fontSize:'12px'}}>
+                  <b>Día {item.dia} de {MESES_NOM[item.mes-1]} ({item.y})</b>
+                  <span>Turno: {item.turno}</span>
+                </div>
+              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay excesos consumidos.</p>}
             </div>
           )}
 
-          {/* --- DESGLOSE ASUNTOS PROPIOS DESPLEGABLE --- */}
           {verDetalleAp && (
             <div className="card" style={{borderColor:'var(--ap-color)', background:'#F8FAFC'}}>
               <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
                 <h4 style={{fontSize:'12px', color:'#854D0E'}}>Historial Asuntos Propios - Bolsa {year}</h4>
                 <button onClick={() => setVerDetalleAp(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
               </div>
-              {listaApFiltrada.length ? listaApFiltrada.map((item, idx) => {
-                let etiquetaAnio = "";
-                if (item.y === year) {
-                  etiquetaAnio = item.esProrroga ? "(Año Anterior)" : `(${year})`;
-                } else if (item.y === year + 1 && item.esProrroga) {
-                  etiquetaAnio = `(${year + 1})`;
-                }
-                return (
-                  <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#FEF08A', borderRadius:'6px', marginBottom:'4px', fontSize:'12px'}}>
-                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]} {etiquetaAnio}</b>
-                    <span>Turno: {item.turno}</span>
-                  </div>
-                );
-              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay asuntos propios consumidos en esta bolsa.</p>}
+              {listaApFiltrada.length ? listaApFiltrada.map((item, idx) => (
+                <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#FEF08A', borderRadius:'6px', marginBottom:'4px', fontSize:'12px'}}>
+                  <b>Día {item.dia} de {MESES_NOM[item.mes-1]} ({item.y})</b>
+                  <span>Turno: {item.turno}</span>
+                </div>
+              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay asuntos propios.</p>}
             </div>
           )}
 
-          {/* --- CALENDARIO --- */}
           <div className="card">
             <div style={{display:'flex', justifyContent:'space-between', marginBottom:'6px'}}>
               <span style={{fontSize:'12px', fontWeight:'bold', color:'var(--primary)'}}>{MESES_NOM[mesVisible].toUpperCase()} {year}</span>
@@ -409,11 +310,9 @@
                 const dk = toDateKey(year, mesVisible, d);
                 const pVacas = getVacationPeriod(dk);
                 const fes = isFestivo(dk);
-                
                 const aps = (user.ap || []).filter(a => a && a.y === year && a.mes === (mesVisible+1) && a.dia === d && a.turno && a.turno !== "-");
                 const excs = (user.excesos || []).filter(e => e && e.y === year && e.mes === (mesVisible+1) && e.dia === d && e.turno && e.turno !== "-");
                 const hasHS = (user.hs || []).some(h => h && h.y === year && h.mes === (mesVisible+1) && h.dia === d);
-                
                 const data = selected[dk] || {};
                 const is12h = data.tipo && data.tipo.startsWith('12h');
                 
@@ -436,7 +335,6 @@
             </div>
           </div>
 
-          {/* --- MODAL EDICIÓN CELDA RAPIDA --- */}
           {edit && (
             <div className="modal" onClick={() => setEdit(null)}>
               <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -456,21 +354,15 @@
             </div>
           )}
 
-          {/* --- MODAL AJUSTES COMPLETOS --- */}
           {showGear && (
             <div className="modal" onClick={() => setShowGear(false)}>
               <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <h2>⚙️ Panel de Control ({year})</h2>
                 
-                {/* --- SECCIÓN NUEVA: COPIA POR CAJA DE TEXTO INTERNA --- */}
                 <div className="card" style={{borderTop:'3px solid #475569', background:'#F8FAFC'}}>
                   <label>💾 COPIA DE SEGURIDAD (ANTIBORRADO)</label>
-                  <button className="btn-backup" onClick={manejarExportar}>
-                    <i className="fa-solid fa-key"></i> Generar Código de Copia
-                  </button>
-                  <button className="btn-backup" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(true)}>
-                    <i className="fa-solid fa-file-import"></i> Restaurar desde Código
-                  </button>
+                  <button className="btn-backup" onClick={manejarExportar}>💾 Generar Código de Copia</button>
+                  <button className="btn-backup" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(true)}>📥 Restaurar desde Código</button>
                 </div>
 
                 <div className="card">
@@ -502,7 +394,6 @@
                   <button className="btn-primary" onClick={aplicarPatron} style={{background:'#1E293B', marginTop:'8px'}}>GENERAR TURNO ANUAL</button>
                 </div>
 
-                {/* --- VACACIONES PERIODO --- */}
                 <div className="card">
                   <label>🏖️ VACACIONES PERIODO ({year})</label>
                   {(user.periodos || []).filter(p => p && p.y === year).map(p => (
@@ -521,19 +412,13 @@
                         <select value={p.dFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dFin:parseInt(e.target.value)}:x)})}>
                           <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
                         </select>
-                        {(p.mIni === 1 || p.mFin === 1) && (
-                          <button className={`toggle-btn ${p.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, periodos: user.periodos.map(x => x.id === p.id ? {...x, esProrroga: !x.esProrroga} : x)})}>
-                            Año Ant.
-                          </button>
-                        )}
                       </div>
                       <button className="btn-del" onClick={() => setUser({...user, periodos: user.periodos.filter(x => x.id !== p.id)})}>🗑️</button>
                     </div>
                   ))}
-                  <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null, dFin:null, mFin:null, esProrroga:false}]})}>+ ASIGNAR VACACIONES</button>
+                  <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null, dFin:null, mFin:null}]})}>+ ASIGNAR VACACIONES</button>
                 </div>
 
-                {/* --- EXCESOS --- */}
                 <div className="card" style={{borderTop:'3px solid #22C55E'}}>
                   <label>🟢 EXCESOS ({year})</label>
                   {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
@@ -547,7 +432,6 @@
                           <select value={exc.dia || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x => x.id === exc.id ? {...x, dia: parseInt(e.target.value), turno:"-"} : x)})}>
                             <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
                           </select>
-                          
                           <select value={exc.turno || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x => x.id === exc.id ? {...x, turno: e.target.value} : x)})}>
                             <option value="-">-</option>
                             {["M","T","N"].map(t => {
@@ -555,12 +439,7 @@
                               return <option key={t} value={t} disabled={deshabilitado}>{t} {deshabilitado ? '(Ocupado)' : ''}</option>;
                             })}
                           </select>
-
-                          {exc.mes === 1 && (
-                            <button className={`toggle-btn ${exc.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, excesos: user.excesos.map(x => x.id === exc.id ? {...x, esProrroga: !x.esProrroga} : x)})}>
-                              Año Ant.
-                            </button>
-                          )}
+                          <button className={`toggle-btn ${exc.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, excesos: user.excesos.map(x => x.id === exc.id ? {...x, esProrroga: !x.esProrroga} : x)})}>Bolsa Ant.</button>
                         </div>
                         <button className="btn-del" onClick={() => setUser({...user, excesos: user.excesos.filter(x => x.id !== exc.id)})}>🗑️</button>
                       </div>
@@ -569,7 +448,6 @@
                   <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ AÑADIR EXCESO</button>
                 </div>
 
-                {/* --- ASUNTOS PROPIOS --- */}
                 <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
                   <label>📂 ASUNTOS PROPIOS ({year})</label>
                   {(user.ap || []).filter(a => a && a.y === year).map(a => {
@@ -583,7 +461,6 @@
                           <select value={a.dia || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===a.id?{...x, dia:parseInt(e.target.value), turno:"-"}:x)})}>
                             <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
                           </select>
-                          
                           <select value={a.turno || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===a.id?{...x, turno:e.target.value}:x)})}>
                             <option value="-">-</option>
                             {["M","T","N"].map(t => {
@@ -591,12 +468,7 @@
                               return <option key={t} value={t} disabled={deshabilitado}>{t} {deshabilitado ? '(Ocupado)' : ''}</option>;
                             })}
                           </select>
-
-                          {a.mes === 1 && (
-                            <button className={`toggle-btn ${a.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, ap: user.ap.map(x => x.id === a.id ? {...x, esProrroga: !x.esProrroga} : x)})}>
-                              Año Ant.
-                            </button>
-                          )}
+                          <button className={`toggle-btn ${a.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, ap: user.ap.map(x => x.id === a.id ? {...x, esProrroga: !x.esProrroga} : x)})}>Bolsa Ant.</button>
                         </div>
                         <button className="btn-del" onClick={() => setUser({...user, ap: user.ap.filter(x => x.id !== a.id)})}>🗑️</button>
                       </div>
@@ -605,7 +477,6 @@
                   <button className="btn-primary" style={{background:'var(--ap-color)', color:'#1E293B'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ AÑADIR AP</button>
                 </div>
 
-                {/* --- HORAS SINDICALES --- */}
                 <div className="card" style={{borderTop:'3px solid var(--hs-color)'}}>
                   <label>🔹 HORAS SINDICALES (HS - {year})</label>
                   {(user.hs || []).filter(h => h && h.y === year).map(h => (
@@ -625,7 +496,6 @@
                   <button className="btn-primary" style={{background:'var(--hs-color)'}} onClick={() => setUser({...user, hs: [...(user.hs || []), {id:Date.now(), y:year, dia:null, mes:null, horas:8}]})}>+ AÑADIR HS</button>
                 </div>
 
-                {/* --- PERMISOS RETRIBUIDOS --- */}
                 <div className="card" style={{borderTop:'3px solid #10B981'}}>
                   <label>🟢 PERMISOS (PER - {year})</label>
                   {(user.per || []).filter(p => p && p.y === year).map(p => (
@@ -650,45 +520,31 @@
             </div>
           )}
 
-          {/* --- SUBMODAL INTERNO: MOSTRAR CÓDIGO GENERADO (EXPORTAR) --- */}
           {textoExportado && (
             <div className="modal" style={{zIndex: 1100}}>
               <div className="modal-content" style={{textAlign:'center'}}>
                 <h3>Tu Código de Seguridad</h3>
-                <p style={{fontSize:'12px', color:'#64748B', margin:'8px 0'}}>Mantén el dedo pulsado sobre las letras de abajo, dale a "Seleccionar todo" y luego a "Copiar".</p>
-                <textarea 
-                  readOnly 
-                  value={textoExportado} 
-                  style={{height:'140px', fontSize:'11px', background:'#F1F5F9', fontFamily:'monospace', wordBreak:'break-all'}} 
-                  onClick={(e) => e.target.select()}
-                />
+                <p style={{fontSize:'12px', color:'#64748B', margin:'8px 0'}}>Mantén el dedo pulsado, dale a "Seleccionar todo" y luego a "Copiar".</p>
+                <textarea readOnly value={textoExportado} style={{height:'140px', fontSize:'11px', background:'#F1F5F9', fontFamily:'monospace', wordBreak:'break-all'}} onClick={(e) => e.target.select()}/>
                 <button className="btn-primary" onClick={() => setTextoExportado("")}>LISTO, YA LO HE COPIADO</button>
               </div>
             </div>
           )}
 
-          {/* --- SUBMODAL INTERNO: PEGAR CÓDIGO GUARDADO (IMPORTAR) --- */}
           {mostrarModalImportar && (
             <div className="modal" style={{zIndex: 1100}}>
               <div className="modal-content">
                 <h3>Restaurar Cuadrante</h3>
-                <p style={{fontSize:'12px', color:'#64748B', margin:'8px 0'}}>Mantén pulsado dentro del cuadro gris y dale a "Pegar" el código largo que guardaste:</p>
-                <textarea 
-                  value={textoAImportar} 
-                  onChange={(e) => setTextoAImportar(e.target.value)}
-                  placeholder="Pega el código aquí..." 
-                  style={{height:'140px', fontSize:'11px', background:'#FFF', fontFamily:'monospace'}}
-                />
+                <p style={{fontSize:'12px', color:'#64748B', margin:'8px 0'}}>Pega el código largo aquí abajo:</p>
+                <textarea value={textoAImportar} onChange={(e) => setTextoAImportar(e.target.value)} placeholder="Pega el código aquí..." style={{height:'140px', fontSize:'11px', background:'#FFF', fontFamily:'monospace'}}/>
                 <button className="btn-primary" style={{background:'var(--success)'}} onClick={manejarImportar}>RESTAURAR DATOS Now</button>
                 <button className="btn-danger" style={{background:'#64748B'}} onClick={() => { setMostrarModalImportar(false); setTextoAImportar(""); }}>CANCELAR</button>
               </div>
             </div>
           )}
-
         </div>
       );
     }
-
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<App />);
   </script>
