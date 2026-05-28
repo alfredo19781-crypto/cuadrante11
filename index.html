@@ -558,7 +558,8 @@
   </script>
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+// Borra la línea 561 y pon esta en su lugar:
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
@@ -570,11 +571,7 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const docRef = doc(db, "usuarios", "datos_cuadrante");
-
-// Asegúrate de tener estas funciones importadas de firebase-database.js
-const db = getDatabase();
+  const db = getDatabase(app);
 
 // 1. ESCUCHAR CAMBIOS: Sincroniza móvil con PC en tiempo real
 onValue(ref(db, 'cuadranteData'), (snapshot) => {
