@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   
-  <title>Cuadrante Alfredo Multianual V12.16</title>
+  <title>Cuadrante Alfredo Multianual V12.17</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -28,20 +28,23 @@
     .card { background: white; border-radius: 12px; border: 1px solid #E2E8F0; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .grid-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 10px; }
-    .modal-content { background: white; border-radius: 20px; padding: 15px; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; }
+    .modal-content { background: white; border-radius: 20px; padding: 15px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; }
     select, input, textarea { border-radius: 8px; border: 1px solid #CBD5E1; padding: 10px; font-size: 14px; width: 100%; background: white; }
     label { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block; }
     .btn-primary { background: var(--primary); color: white; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; border: none; margin-top: 5px; }
     .btn-danger { background: var(--danger); color: white; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; border: none; margin-top: 5px; }
     .row-config { background: #F8FAFC; padding: 10px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 10px; }
-    .inputs-group { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+    .inputs-group { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: nowrap; width: 100%; }
     .btn-del { background: var(--danger); color: white; padding: 10px; border-radius: 8px; border: none; flex: 1; font-weight: bold; font-size: 12px; }
     .dia-btn { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; border: 1px solid #F1F5F9; background: white; position: relative; overflow: hidden; }
     .ap-line { position: absolute; left: 0; right: 0; height: 4px; background: var(--ap-color); z-index: 5; }
     .ap-M { top: 0; } .ap-T { top: calc(50% - 2px); } .ap-N { bottom: 0; }
     .hs-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; background: var(--hs-color); border-radius: 50%; z-index: 6; }
-    .toggle-btn { background: #E2E8F0; border: none; padding: 10px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; flex-shrink: 0; color: #475569; }
+    
+    /* CORRECCIÓN PARA PC Y MÓVIL DEL BOTÓN ANUL */
+    .toggle-btn { background: #E2E8F0; border: none; padding: 10px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; color: #475569; min-width: 60px; text-align: center; display: inline-block; }
     .toggle-btn.active { background: #F59E0B; color: white; }
+    
     .btn-backup { background: #475569; color: white; padding: 12px; border-radius: 10px; font-weight: bold; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; width: 100%; margin-bottom: 8px; cursor: pointer; }
   </style>
 </head>
@@ -127,7 +130,7 @@
 
       const manejarExportar = () => {
         try {
-          const datosCompletos = { versionBackup: "12.16", userConfig: user, selectedData: selected };
+          const datosCompletos = { versionBackup: "12.17", userConfig: user, selectedData: selected };
           const textoCifrado = btoa(unescape(encodeURIComponent(JSON.stringify(datosCompletos))));
           setTextoExportado(textoCifrado);
         } catch (error) {
@@ -319,7 +322,6 @@
         });
       }, [user.ap, year]);
 
-      // LÓGICA DE FILTRADO EN TIEMPO REAL PARA BLOQUEAR TURNOS YA ELEGIDOS EN EL MISMO DÍA
       const obtenerTurnosDisponibles = (idActual, anio, mes, dia) => {
         if (!mes || !dia) return ["M", "T", "N"];
         let turnosOcupados = [];
@@ -352,7 +354,7 @@
             <button onClick={() => setShowGear(true)} style={{fontSize:'20px', background:'none', border:'none', color:'#475569'}}><i className="fa-solid fa-gear"></i></button>
           </div>
 
-          {/* --- NAVEGACIÓN MES --- */}
+          /* --- NAVEGACIÓN MES --- */
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px', background:'#fff', borderRadius:'12px', marginBottom:'12px', border:'1px solid #E2E8F0' }}>
             <button onClick={() => setMesVisible(prev => (prev > 0 ? prev - 1 : 11))} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background:'#F1F5F9', fontSize:'16px' }}>⬅️</button>
             <div style={{ textAlign:'center' }}>
@@ -409,7 +411,7 @@
                     <span>Turno: {item.turno}</span>
                   </div>
                 );
-              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay excesos consumidos en esta bolsa.</p>}
+              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay excesos consumidos in esta bolsa.</p>}
             </div>
           )}
 
@@ -546,25 +548,28 @@
                   <button className="btn-primary" onClick={aplicarPatron} style={{background:'#1E293B', marginTop:'8px'}}>GENERAR TURNO ANUAL</button>
                 </div>
 
-                {/* --- VACACIONES PERIODO --- */}
+                {/* --- VACACIONES PERIODO CON BOTÓN ANUL ARREGLADO --- */}
                 <div className="card">
                   <label>🏖️ VACACIONES PERIODO ({year})</label>
                   {(user.periodos || []).filter(p => p && p.y === year).map(p => (
                     <div key={p.id} className="row-config">
                       <div className="inputs-group">
-                        <select value={p.mIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mIni:parseInt(e.target.value)}:x)})}>
+                        <select value={p.mIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mIni:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
                           <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m.slice(0,3)}</option>)}
                         </select>
-                        <select value={p.dIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dIni:parseInt(e.target.value)}:x)})}>
+                        <select value={p.dIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dIni:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
                           <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
                         </select>
-                        <span>al</span>
-                        <select value={p.mFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mFin:parseInt(e.target.value)}:x)})}>
+                        <span style={{fontSize:'12px', fontWeight:'bold'}}>al</span>
+                        <select value={p.mFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mFin:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
                           <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m.slice(0,3)}</option>)}
                         </select>
-                        <select value={p.dFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dFin:parseInt(e.target.value)}:x)})}>
+                        <select value={p.dFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dFin:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
                           <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
                         </select>
+                        <button className={`toggle-btn ${p.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, esProrroga:!x.esProrroga}:x)})}>
+                          ANUL
+                        </button>
                       </div>
                       <button className="btn-del" onClick={() => setUser({...user, periodos: user.periodos.filter(x => x.id !== p.id)})}>🗑️ Borrar Periodo</button>
                     </div>
@@ -572,7 +577,7 @@
                   <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null, dFin:null, mFin:null, esProrroga:false}]})}>+ ASIGNAR VACACIONES</button>
                 </div>
 
-                {/* --- EXCESOS CORREGIDOS CON BOTÓN ANUL Y FILTRADO DE TURNOS --- */}
+                {/* --- EXCESOS CORREGIDOS CON BOTÓN ANUL VISIBLE EN PC --- */}
                 <div className="card" style={{borderTop:'3px solid #22C55E'}}>
                   <label>🟢 EXCESOS SOLICITADOS ({year})</label>
                   {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
@@ -602,7 +607,7 @@
                   <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ AÑADIR EXCESO</button>
                 </div>
 
-                {/* --- ASUNTOS PROPIOS CORREGIDOS CON BOTÓN ANUL Y FILTRADO DE TURNOS --- */}
+                {/* --- ASUNTOS PROPIOS CORREGIDOS CON BOTÓN ANUL VISIBLE EN PC --- */}
                 <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
                   <label>🟡 ASUNTOS PROPIOS ({year})</label>
                   {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
