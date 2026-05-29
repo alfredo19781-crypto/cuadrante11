@@ -401,8 +401,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { , useEffect } = React;
-
+    const { useState, useEffect } = React;
     const MESES_NOM = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
     const DIAS_SEM = ["LU", "MA", "MI", "JU", "VI", "SÁ", "DO"];
 
@@ -765,8 +764,10 @@
         <span className="label">💼 Otros</span>
         <span className="value">{user.otros?.filter(o=>o.y===year).length || 0}</span>
       </div>
-      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Permisos', data: user.permisos || []})}>
-      </div>
+     <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Permisos', data: user.permisos || []})}>
+  <span className="label">📝 Permisos</span>
+  <span className="value">{user.permisos?.filter(p => p.y === year).length || 0}</span>
+</div>
     </div>
   </div>
 )}
