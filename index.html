@@ -85,20 +85,17 @@
       useEffect(() => { localStorage.setItem("cuad_alfredo_v122_data", JSON.stringify(selected)); }, [selected]);
 // ESCUCHAR CAMBIOS DE CONFIGURACIÓN DESDE LA NUBE
 useEffect(() => {
-  const configRef = ref(db, 'user_alfredo_v122_config');
-  
-  const unsubscribe = onValue(configRef, (snapshot) => {
-    const configData = snapshot.val();
-   // Comprobamos si hay datos y si son diferentes a lo que ya tenemos
-if (configData && JSON.stringify(configData) !== JSON.stringify(user)) {
-    console.log("Configuración nueva recibida. Actualizando...");
-    
-    // 1. Guardamos en el móvil
-    localStorage.setItem("user_alfredo_v122_config", JSON.stringify(configData));
-    
-    // 2. Actualizamos la pantalla automáticamente
-    setUser(configData); 
-}
+    // Sincronización automática
+    const configRef = ref(db, 'user_alfredo_v122_config');
+    const unsubscribe = onValue(configRef, (snapshot) => {
+      const configData = snapshot.val();
+      if (configData && JSON.stringify(configData) !== localStorage.getItem("user_alfredo_v122_config")) {
+        localStorage.setItem("user_alfredo_v122_config", JSON.stringify(configData));
+        setUser(configData);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
   });
 
   return () => unsubscribe(); // Limpiamos al salir
@@ -580,10 +577,7 @@ if (configData && JSON.stringify(configData) !== JSON.stringify(user)) {
     root.render(<App />);
   </script>
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-// 1. IMPORTACIONES CORRECTAS PARA REALTIME DATABASE
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
-
+  // --- CONFIGURACIÓN DE FIREBASE (Sin 'import', para evitar errores) ---
 const firebaseConfig = {
   apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
   authDomain: "cuadrantealfredo-8fb83.firebaseapp.com",
@@ -593,8 +587,11 @@ const firebaseConfig = {
   messagingSenderId: "220264725344",
   appId: "1:220264725344:web:2541e92d3d396aa53d7c05"
 };
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app); 
+
+// Usamos las variables globales que ya carga Firebase en tu HTML
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const { ref, onValue, set } = firebase.database;
 
 // Variable para evitar el bucle
 let bloqueado = false;
