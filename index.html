@@ -84,11 +84,21 @@
 }, [user]);
       useEffect(() => { localStorage.setItem("cuad_alfredo_v122_data", JSON.stringify(selected)); }, [selected]);
 // ESCUCHAR CAMBIOS DE CONFIGURACIÓN DESDE LA NUBE
+// ESCUCHAR CAMBIOS DE CONFIGURACIÓN DESDE LA NUBE
+  useEffect(() => {
+    if (typeof firebase !== 'undefined') {
+      const configRef = firebase.database().ref('user_alfredo_v122_config');
+      configRef.on('value', (snapshot) => {
+        const configData = snapshot.val();
+        if (configData) {
+          localStorage.setItem("user_alfredo_v122_config", JSON.stringify(configData));
+          if (typeof setUser === 'function') { setUser(configData); }
+        }
+      });
+      return () => configRef.off(); // Limpiamos al salir
+    }
+  }, []);
 
-  });
-
-  return () => unsubscribe(); // Limpiamos al salir
-}, []);
       const manejarExportar = () => {
         try {
           const datosCompletos = { versionBackup: "12.16", userConfig: user, selectedData: selected };
