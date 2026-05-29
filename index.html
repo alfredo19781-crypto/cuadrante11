@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   
-  <title>Cuadrante Alfredo Multianual V12.20 - Módulos Nuevos</title>
+  <title>Cuadrante Alfredo Multianual V12.21 - Movilizaciones Pulido</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -41,7 +41,6 @@
     .ap-M { top: 0; } .ap-T { top: calc(50% - 2px); } .ap-N { bottom: 0; }
     .hs-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; background: var(--hs-color); border-radius: 50%; z-index: 6; }
     
-    /* Indicadores visuales de los nuevos módulos */
     .guardia-dot { position: absolute; bottom: 3px; left: 3px; width: 5px; height: 5px; background: #F59E0B; border-radius: 50%; z-index: 6; }
     .mov-dot { position: absolute; bottom: 3px; left: 10px; width: 5px; height: 5px; background: #8B5CF6; border-radius: 50%; z-index: 6; }
     .otr-dot { position: absolute; bottom: 3px; left: 17px; width: 5px; height: 5px; background: #06B6D4; border-radius: 50%; z-index: 6; }
@@ -61,7 +60,6 @@
     const ANIOS_LISTA = Array.from({ length: 21 }, (_, i) => 2025 + i);
     const toDateKey = (y, m, d) => `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
-    // --- CREDENCIALES DE TU BASE DE DATOS ---
     const firebaseConfig = {
       apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
       authDomain: "cuadrantealfredo-8fb83.firebaseapp.com",
@@ -81,7 +79,7 @@
       const [selected, setSelected] = useState(() => JSON.parse(localStorage.getItem("cuad_alfredo_v122_data") || "{}"));
       
       const [user, setUser] = useState(() => {
-        const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[]};
+        const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[], mov_arrastradas:{}};
         try {
           const saved = localStorage.getItem("user_alfredo_v122_config");
           return saved ? { ...plantillaBase, ...JSON.parse(saved) } : plantillaBase;
@@ -94,7 +92,6 @@
       const [verDetalleAp, setVerDetalleAp] = useState(false);
       const [verDetalleExc, setVerDetalleExc] = useState(false);
       
-      // Nuevos estados para colapsables de detalles rápidos
       const [verDetalleGuardias, setVerDetalleGuardias] = useState(false);
       const [verDetalleMov, setVerDetalleMov] = useState(false);
       const [verDetalleOtros, setVerDetalleOtros] = useState(false);
@@ -107,10 +104,8 @@
       const [mostrarModalImportar, setMostrarModalImportar] = useState(false);
       const [textoAImportar, setTextoAImportar] = useState("");
 
-      // Guardar localmente
       useEffect(() => { localStorage.setItem("cuad_year_actual", year); }, [year]);
       
-      // GUARDAR EN LA NUBE AUTOMÁTICAMENTE
       useEffect(() => { 
         localStorage.setItem("user_alfredo_v122_config", JSON.stringify(user));
         db.ref('user_alfredo_v122_config').set(user).catch(e => console.log("Error nube Config:", e));
@@ -121,13 +116,12 @@
         db.ref('cuad_alfredo_v122_data').set(selected).catch(e => console.log("Error nube Data:", e));
       }, [selected]);
 
-      // ESCUCHAR CAMBIOS EN TIEMPO REAL
       useEffect(() => {
         const configRef = db.ref('user_alfredo_v122_config');
         const manejarConfig = (snapshot) => {
           const val = snapshot.val();
           if (val && JSON.stringify(val) !== localStorage.getItem("user_alfredo_v122_config")) {
-            const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[]};
+            const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[], mov_arrastradas:{}};
             setUser({ ...plantillaBase, ...val });
           }
         };
@@ -150,7 +144,7 @@
 
       const manejarExportar = () => {
         try {
-          const datosCompletos = { versionBackup: "12.20", userConfig: user, selectedData: selected };
+          const datosCompletos = { versionBackup: "12.21", userConfig: user, selectedData: selected };
           const textoCifrado = btoa(unescape(encodeURIComponent(JSON.stringify(datosCompletos))));
           setTextoExportado(textoCifrado);
         } catch (error) {
@@ -164,7 +158,7 @@
           const textoDescifrado = decodeURIComponent(escape(atob(textoAImportar.trim())));
           const importado = JSON.parse(textoDescifrado);
           if (importado.userConfig && importado.selectedData) {
-            const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[]};
+            const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[], mov_arrastradas:{}};
             setUser({ ...plantillaBase, ...importado.userConfig });
             setSelected(importado.selectedData);
             alert("🚀 ¡Copia de seguridad restaurada con éxito!");
@@ -368,6 +362,19 @@
         return ["M", "T", "N"].filter(t => !turnosOcupados.includes(t));
       };
 
+      // --- CÁLCULOS DINÁMICOS DE MOVILIZACIONES (HORAS EXTRAS) ---
+      const movArrastradasAnual = useMemo(() => {
+        return (user.mov_arrastradas && user.mov_arrastradas[year]) ? parseInt(user.mov_arrastradas[year]) : 0;
+      }, [user.mov_arrastradas, year]);
+
+      const totalHorasMovHechas = useMemo(() => {
+        return (user.movilizaciones || []).filter(m => m && m.y === year).reduce((s, c) => s + (c.horas || 0), 0);
+      }, [user.movilizaciones, year]);
+
+      const limiteMovTotalMaximo = useMemo(() => {
+        return 65 + movArrastradasAnual;
+      }, [movArrastradasAnual]);
+
       return (
         <div>
           {/* --- PANEL SELECCIÓN AÑO --- */}
@@ -418,15 +425,18 @@
             </div>
           </div>
 
-          {/* --- NUEVA FILA DE TARJETAS INDICADORAS (MÓDULOS AGREGADOS) --- */}
+          {/* --- FILA DE TARJETAS INDICADORAS (MÓDULOS ACTUALIZADOS) --- */}
           <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'6px', marginBottom:'12px'}}>
             <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleMov(false); setVerDetalleOtros(false); setVerDetalleGuardias(!verDetalleGuardias); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #F59E0B', cursor:'pointer', background:'white'}}>
               <label style={{fontSize:'8px', color:'#D97706'}}>🛡️ GUARDIAS</label>
               <b style={{fontSize:'12px'}}>{(user.guardias || []).filter(g => g && g.y === year).length} ({(user.guardias || []).filter(g => g && g.y === year).reduce((s,c)=>s+(c.horas||0),0)}h)</b>
             </div>
+            {/* Tarjeta de Movilizaciones Pulida */}
             <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleGuardias(false); setVerDetalleOtros(false); setVerDetalleMov(!verDetalleMov); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #8B5CF6', cursor:'pointer', background:'white'}}>
-              <label style={{fontSize:'8px', color:'#7C3AED'}}>🚒 MOVILIZAC.</label>
-              <b style={{fontSize:'12px'}}>{(user.movilizaciones || []).filter(m => m && m.y === year).length}</b>
+              <label style={{fontSize:'8px', color:'#7C3AED'}}><i className="fa-solid fa-user-clock"></i> MOVILIZAC.</label>
+              <b style={{fontSize:'12px', color: totalHorasMovHechas > limiteMovTotalMaximo ? 'var(--danger)' : 'inherit'}}>
+                {totalHorasMovHechas} / {limiteMovTotalMaximo}h
+              </b>
             </div>
             <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleGuardias(false); setVerDetalleMov(false); setVerDetalleOtros(!verDetalleOtros); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #06B6D4', cursor:'pointer', background:'white'}}>
               <label style={{fontSize:'8px', color:'#0891B2'}}>💼 OTROS</label>
@@ -498,22 +508,24 @@
             </div>
           )}
 
-          {/* --- DESGLOSE MOVILIZACIONES DESPLEGABLE --- */}
+          {/* --- DESGLOSE MOVILIZACIONES ACTUALIZADO --- */}
           {verDetalleMov && (
             <div className="card" style={{borderColor:'#8B5CF6', background:'#F8FAFC'}}>
-              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
-                <h4 style={{fontSize:'12px', color:'#7C3AED'}}>Historial Anual de Movilizaciones {year}</h4>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'6px'}}>
+                <h4 style={{fontSize:'12px', color:'#7C3AED'}}>📋 Historial Anual de Movilizaciones {year}</h4>
                 <button onClick={() => setVerDetalleMov(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
               </div>
+              
+              <div style={{fontSize:'11px', color:'#475569', marginBottom:'8px', background:'#EEF2F6', padding:'6px', borderRadius:'6px'}}>
+                Límite Extraordinario Base: <b>65h</b> {movArrastradasAnual > 0 ? `+ ${movArrastradasAnual}h del año anterior = ${limiteMovTotalMaximo}h máx.` : ''}
+              </div>
+
               {(user.movilizaciones || []).filter(m => m && m.y === year).length ? (user.movilizaciones || []).filter(m => m && m.y === year).map((item, idx) => (
-                <div key={idx} style={{display:'flex', display:'block', padding:'6px', background:'#E0E7FF', borderRadius:'6px', marginBottom:'4px', fontSize:'12px', borderLeft:'4px solid #8B5CF6'}}>
-                  <div style={{display:'flex', justifyContent:'space-between'}}>
-                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]}</b>
-                    <span><b>{item.horas} Horas</b></span>
-                  </div>
-                  {item.detalle && <div style={{fontSize:'11px', color:'#475569', marginTop:'2px'}}>Destino: {item.detalle}</div>}
+                <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#E0E7FF', borderRadius:'6px', marginBottom:'4px', fontSize:'12px', borderLeft:'4px solid #8B5CF6'}}>
+                  <b>Día {item.dia} de {MESES_NOM[item.mes-1]}</b>
+                  <span style={{fontWeight:'bold', color:'#4F46E5'}}>{item.horas} Horas Extra</span>
                 </div>
-              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay movilizaciones anotadas este año.</p>}
+              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay movilizaciones anotadas en el año {year}.</p>}
             </div>
           )}
 
@@ -543,9 +555,9 @@
               <div style={{fontSize:'9px', display:'flex', gap:'5px', flexWrap:'wrap', justifyContent:'flex-end'}}>
                 <span style={{color:'var(--hs-color)', fontWeight:'bold'}}>{(user.hs || []).filter(h => h && h.y === year && h.mes === (mesVisible+1)).reduce((s,c)=>s+c.horas, 0)}h HS</span>
                 <span style={{color:'#10B981', fontWeight:'bold'}}>{(user.per || []).filter(p => p && p.y === year && p.mes === (mesVisible+1)).reduce((s,c)=>s+c.horas, 0)}h PER</span>
-                <span style={{color:'#F59E0B', fontWeight:'bold'}}>{(user.guardias || []).filter(g => g && g.y === year && g.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0), 0)}h GUARD</span>
-                <span style={{color:'#8B5CF6', fontWeight:'bold'}}>{(user.movilizaciones || []).filter(m => m && m.y === year && m.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0), 0)}h MOV</span>
-                <span style={{color:'#06B6D4', fontWeight:'bold'}}>{(user.otros || []).filter(o => o && o.y === year && o.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0), 0)}h OTR</span>
+                <span style={{color:'#F59E0B', fontWeight:'bold'}}>{(user.guardias || []).filter(g => g && g.y === year && g.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0),0)}h GUARD</span>
+                <span style={{color:'#8B5CF6', fontWeight:'bold'}}>{(user.movilizaciones || []).filter(m => m && m.y === year && m.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0),0)}h MOV</span>
+                <span style={{color:'#06B6D4', fontWeight:'bold'}}>{(user.otros || []).filter(o => o && o.y === year && o.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0),0)}h OTR</span>
               </div>
             </div>
 
@@ -561,7 +573,6 @@
                 const excs = (user.excesos || []).filter(e => e && e.y === year && e.mes === (mesVisible+1) && e.dia === d && e.turno && e.turno !== "-");
                 const hasHS = (user.hs || []).some(h => h && h.y === year && h.mes === (mesVisible+1) && h.dia === d);
                 
-                // Consultas de puntos para los nuevos módulos
                 const hasGuardia = (user.guardias || []).some(g => g && g.y === year && g.mes === (mesVisible+1) && g.dia === d);
                 const hasMovilizacion = (user.movilizaciones || []).some(m => m && m.y === year && m.mes === (mesVisible+1) && m.dia === d);
                 const hasOtros = (user.otros || []).some(o => o && o.y === year && o.mes === (mesVisible+1) && o.dia === d);
@@ -571,8 +582,8 @@
                 
                 let bg = "white";
                 if (pVacas) bg = "#FEF9C3"; 
-                else if (data.tipo === 'G-24h' || data.tipo === 'G-12h') bg = "#FEF3C7"; // Tinte ámbar guardias
-                else if (data.tipo === 'MOV') bg = "#E0E7FF"; // Tinte índigo movilizaciones
+                else if (data.tipo === 'G-24h' || data.tipo === 'G-12h') bg = "#FEF3C7"; 
+                else if (data.tipo === 'MOV') bg = "#E0E7FF"; 
                 else if (is12h) bg = data.tipo === '12h-N' ? "#C2410C" : "#FB923C";
                 else if (data.jornada) bg = "#FEE2E2";
                 else if (data.descanso) bg = "#DCFCE7";
@@ -584,7 +595,6 @@
                     {excs.map((e,i) => <div key={i} className={`ap-line ap-${e.turno}`} style={{background:'#22C55E'}} />)}
                     {hasHS && <div className="hs-dot" />}
                     
-                    {/* Nuevos círculos identificadores */}
                     {hasGuardia && <div className="guardia-dot" />}
                     {hasMovilizacion && <div className="mov-dot" />}
                     {hasOtros && <div className="otr-dot" />}
@@ -623,7 +633,7 @@
                   <option value="12h-N">Jornada 12h - Noche (N)</option>
                   <option value="G-24h">🛡️ Guardia 24h</option>
                   <option value="G-12h">🛡️ Guardia 12h</option>
-                  <option value="MOV">🚒 Movilización</option>
+                  <option value="MOV">⏱️ Movilización</option>
                 </select>
                 <button className="btn-primary" onClick={guardarCeldaRapida}>GUARDAR</button>
                 <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setEdit(null)}>CANCELAR</button>
@@ -765,7 +775,7 @@
                   <button className="btn-primary" style={{background:'var(--ap-color)', color:'var(--dark)'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ AÑADIR AP</button>
                 </div>
 
-                {/* --- NUEVA SECCIÓN: GESTOR DE GUARDIAS --- */}
+                {/* --- GESTOR DE GUARDIAS --- */}
                 <div className="card" style={{borderTop:'3px solid #F59E0B'}}>
                   <label>🛡️ CONFIGURAR GUARDIAS DETALLADAS ({year})</label>
                   {(user.guardias || []).filter(g => g && g.y === year).map(g => (
@@ -787,26 +797,48 @@
                   <button className="btn-primary" style={{background:'#F59E0B', color:'white'}} onClick={() => setUser({...user, guardias: [...(user.guardias || []), {id:Date.now(), y:year, dia:null, mes:null, tipo:"Localizada", horas:24}]})}>+ AÑADIR REGISTRO GUARDIA</button>
                 </div>
 
-                {/* --- NUEVA SECCIÓN: GESTOR DE MOVILIZACIONES --- */}
+                {/* --- SECCIÓN PULIDA: GESTOR DE MOVILIZACIONES (HORAS EXTRAS) --- */}
                 <div className="card" style={{borderTop:'3px solid #8B5CF6'}}>
-                  <label>🚒 CONFIGURAR MOVILIZACIONES / DESPLIEGUES ({year})</label>
+                  <label><i className="fa-solid fa-user-clock"></i> CONFIGURAR MOVILIZACIONES (HORAS EXTRAS - {year})</label>
+                  
+                  {/* Selector especial para horas pendientes arrastradas */}
+                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', background:'#EEF2F6', padding:'8px', borderRadius:'8px', marginBottom:'10px'}}>
+                    <span style={{fontSize:'12px', fontWeight:'600', color:'#475569'}}>Horas pendientes año anterior (Máx 8h):</span>
+                    <input 
+                      type="number" 
+                      min="0" 
+                      max="8" 
+                      value={(user.mov_arrastradas && user.mov_arrastradas[year]) || 0} 
+                      onChange={e => {
+                        const hVal = Math.min(8, Math.max(0, parseInt(e.target.value) || 0));
+                        setUser({
+                          ...user,
+                          mov_arrastradas: {
+                            ...(user.mov_arrastradas || {}),
+                            [year]: hVal
+                          }
+                        });
+                      }} 
+                      style={{width:'65px', padding:'4px', textAlign:'center', fontWeight:'bold'}} 
+                    />
+                  </div>
+
                   {(user.movilizaciones || []).filter(m => m && m.y === year).map(m => (
                     <div key={m.id} className="row-config">
                       <div className="inputs-group">
-                        <input type="number" placeholder="Día" value={m.dia || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
+                        <input type="number" placeholder="Día" value={m.dia || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'65px', textAlign:'center'}} />
                         <select value={m.mes || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
                           <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
                         </select>
-                        <input type="text" placeholder="Destino / Notas" value={m.detalle || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, detalle:e.target.value}:x)})} style={{flex:'2'}} />
-                        <input type="number" placeholder="Horas" value={m.horas || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
+                        <input type="number" placeholder="Horas" value={m.horas || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'85px', textAlign:'center', fontWeight:'bold', color:'#4F46E5'}} />
                       </div>
                       <button className="btn-del" onClick={() => setUser({...user, movilizaciones: user.movilizaciones.filter(x => x.id !== m.id)})}>🗑️ Borrar Movilización</button>
                     </div>
                   ))}
-                  <button className="btn-primary" style={{background:'#8B5CF6', color:'white'}} onClick={() => setUser({...user, movilizaciones: [...(user.movilizaciones || []), {id:Date.now(), y:year, dia:null, mes:null, detalle:"", horas:8}]})}>+ AÑADIR REGISTRO MOVILIZACIÓN</button>
+                  <button className="btn-primary" style={{background:'#8B5CF6', color:'white'}} onClick={() => setUser({...user, movilizaciones: [...(user.movilizaciones || []), {id:Date.now(), y:year, dia:null, mes:null, horas:8}]})}>+ AÑADIR REGISTRO (DÍA-MES-HORAS)</button>
                 </div>
 
-                {/* --- NUEVA SECCIÓN: GESTOR DE OTROS --- */}
+                {/* --- GESTOR DE OTROS --- */}
                 <div className="card" style={{borderTop:'3px solid #06B6D4'}}>
                   <label>💼 OTROS RECONOCIMIENTOS / CURSOS / COMISIONES ({year})</label>
                   {(user.otros || []).filter(o => o && o.y === year).map(o => (
@@ -863,7 +895,6 @@
     const root = ReactDOM.createRoot(container);
     root.render(<App />);
 
-    // --- SCRIPT DE INMERSIÓN DE PANTALLA COMPLETA AL TOCAR ---
     window.addEventListener("click", function() {
       const doc = window.document;
       const docEl = doc.documentElement;
