@@ -1,812 +1,663 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Cuadrante de Turnos Avanzado</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  
+  <title>Cuadrante Alfredo Multianual V12.21 - Movilizaciones Pulido</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    :root {
-      --primary: #1E293B;
-      --primary-light: #334155;
-      --accent: #3B82F6;
-      --success: #10B981;
-      --danger: #EF4444;
-      --warning: #F59E0B;
-      --background: #0F172A;
-      --surface: #1E293B;
-      --text: #F8FAFC;
-      --text-muted: #94A3B8;
-      --border: #334155;
-      --ap-color: #FBBF24;
-      --dark: #0F172A;
+    :root { 
+      --primary: #2563EB; --danger: #EF4444; --success: #22C55E; 
+      --dark: #1E293B; --bg: #F1F5F9; --ap-color: #FFD700; 
+      --hs-color: #3B82F6; 
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      background-color: var(--background);
-      color: var(--text);
-      padding: 10px;
-      padding-bottom: 80px;
-    }
-
-    .container {
-      max-width: 100%;
-      margin: 0 auto;
-    }
-
-    /* --- CABECERA --- */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      background: var(--surface);
-      padding: 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-
-    .user-info h1 {
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .user-info p {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .btn-icon {
-      background: var(--primary-light);
-      border: 1px solid var(--border);
-      color: var(--text);
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    /* --- CONTROLES DE AÑO --- */
-    .year-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--surface);
-      padding: 8px 16px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border);
-    }
-
-    .year-display {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--accent);
-    }
-
-    .btn-text {
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    /* --- RESUMEN DE BOLSAS --- */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .summary-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .summary-card.highlight-purple {
-      border-top: 3px solid #8B5CF6;
-    }
-
-    .summary-card .label {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-
-    .summary-card .value {
-      font-size: 20px;
-      font-weight: 800;
-      margin-top: 2px;
-    }
-
-    .summary-card .sublabel {
-      font-size: 10px;
-      color: var(--text-muted);
-      margin-top: auto;
-      padding-top: 4px;
-    }
-
-    /* --- CALENDARIO MENSUAL --- */
-    .month-container {
-      background: var(--surface);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      margin-bottom: 16px;
-      overflow: hidden;
-    }
-
-    .month-header {
-      background: var(--primary-light);
-      padding: 10px 14px;
-      font-weight: 700;
-      font-size: 15px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .days-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      padding: 6px;
-    }
-
-    .day-name {
-      text-align: center;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
-      padding: 4px 0;
-    }
-
-    .day-cell {
-      aspect-ratio: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 2px;
-      border-radius: 8px;
-      cursor: pointer;
-      position: relative;
-      border: 1px solid transparent;
-    }
-
-    .day-number {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .day-cell.prev-next {
-      opacity: 0.15;
-      pointer-events: none;
-    }
-
-    .day-cell.weekend {
-      background: rgba(255,255,255,0.02);
-    }
-
-    /* --- ESTILOS DE TURNOS --- */
-    .badge-turno {
-      font-size: 9px;
-      font-weight: 800;
-      padding: 1px 4px;
-      border-radius: 4px;
-      text-align: center;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .t-24h { background: #3B82F6; color: white; }
-    .t-12h-D { background: #F59E0B; color: white; }
-    .t-12h-N { background: #6366F1; color: white; }
-    .t-guardia { background: #10B981; color: white; }
-    .t-libre { color: var(--text-muted); font-weight: normal; }
-
-    /* --- INDICADORES --- */
-    .indicator-container {
-      display: flex;
-      gap: 2px;
-      justify-content: center;
-      width: 100%;
-      height: 5px;
-    }
-
-    .ind-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-    }
-
-    .ind-vac { background: #3B82F6; }
-    .ind-ap { background: var(--ap-color); }
-    .ind-exc { background: #10B981; }
-    .ind-mov { background: #8B5CF6; }
-
-    .mov-hours-label {
-      font-size: 8px;
-      font-weight: bold;
-      color: #A78BFA;
-      margin-top: 1px;
-    }
-
-    /* --- MODALES --- */
-    .modal {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15, 23, 42, 0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 16px;
-      backdrop-filter: blur(4px);
-    }
-
-    .modal-content {
-      background: #FFFFFF;
-      color: #1E293B;
-      border-radius: 16px;
-      padding: 20px;
-      width: 100%;
-      max-width: 480px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);
-    }
-
-    .modal-content h2, .modal-content h3 {
-      margin-bottom: 14px;
-      font-weight: 800;
-    }
-
-    .card {
-      background: #F1F5F9;
-      padding: 12px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      border: 1px solid #E2E8F0;
-    }
-
-    .card label {
-      display: block;
-      font-size: 11px;
-      font-weight: 700;
-      color: #475569;
-      margin-bottom: 4px;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: 1px solid #CBD5E1;
-      background: white;
-      color: #1E293B;
-      font-size: 14px;
-      outline: none;
-    }
-
-    .row-config {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      padding: 8px 0;
-      border-bottom: 1px solid #E2E8F0;
-    }
-
-    .inputs-group {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-
-    /* --- BOTONES --- */
-    button {
-      padding: 10px 16px;
-      border-radius: 8px;
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    .btn-primary { background: #2563EB; color: white; width: 100%; margin-top: 4px; }
-    .btn-danger { background: #DC2626; color: white; width: 100%; margin-top: 6px; }
-    .btn-del { background: #FEF2F2; color: #DC2626; padding: 4px 8px; font-size: 11px; align-self: flex-end; border-radius: 6px;}
-    .btn-backup { background: #0284C7; color: white; width: 100%; margin-top: 4px; margin-bottom: 4px;}
-
-    .toggle-btn {
-      padding: 6px 10px;
-      background: #E2E8F0;
-      color: #475569;
-      font-size: 11px;
-      border-radius: 6px;
-    }
-    .toggle-btn.active {
-      background: #DC2626;
-      color: white;
-    }
-
-    /* --- MENÚ INFERIOR DE ACCESOS RÁPIDOS --- */
-    .bottom-menu {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      padding: 8px 12px;
-      display: flex;
-      justify-content: space-around;
-      z-index: 900;
-    }
-
-    .menu-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      gap: 4px;
-    }
-
-    .menu-item i {
-      font-size: 18px;
-    }
-
-    .menu-item.active {
-      color: var(--accent);
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, sans-serif; background: var(--bg); color: var(--dark); padding: 10px; }
+    .card { background: white; border-radius: 12px; border: 1px solid #E2E8F0; padding: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .grid-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 10px; }
+    .modal-content { background: white; border-radius: 20px; padding: 15px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; }
+    select, input, textarea { border-radius: 8px; border: 1px solid #CBD5E1; padding: 10px; font-size: 14px; width: 100%; background: white; }
+    label { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 4px; display: block; }
+    .btn-primary { background: var(--primary); color: white; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; border: none; margin-top: 5px; }
+    .btn-danger { background: var(--danger); color: white; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; border: none; margin-top: 5px; }
+    .row-config { background: #F8FAFC; padding: 10px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 10px; }
+    .inputs-group { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; flex-wrap: nowrap; width: 100%; }
+    .btn-del { background: var(--danger); color: white; padding: 10px; border-radius: 8px; border: none; flex: 1; font-weight: bold; font-size: 12px; }
+    .dia-btn { aspect-ratio: 1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 13px; border: 1px solid #F1F5F9; background: white; position: relative; overflow: hidden; }
+    .ap-line { position: absolute; left: 0; right: 0; height: 4px; background: var(--ap-color); z-index: 5; }
+    .ap-M { top: 0; } .ap-T { top: calc(50% - 2px); } .ap-N { bottom: 0; }
+    .hs-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; background: var(--hs-color); border-radius: 50%; z-index: 6; }
+    
+    .guardia-dot { position: absolute; bottom: 3px; left: 3px; width: 5px; height: 5px; background: #F59E0B; border-radius: 50%; z-index: 6; }
+    .mov-dot { position: absolute; bottom: 3px; left: 10px; width: 5px; height: 5px; background: #8B5CF6; border-radius: 50%; z-index: 6; }
+    .otr-dot { position: absolute; bottom: 3px; left: 17px; width: 5px; height: 5px; background: #06B6D4; border-radius: 50%; z-index: 6; }
+    
+    .toggle-btn { background: #E2E8F0; border: none; padding: 10px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; color: #475569; min-width: 60px; text-align: center; display: inline-block; }
+    .toggle-btn.active { background: #F59E0B; color: white; }
+    
+    .btn-backup { background: #475569; color: white; padding: 12px; border-radius: 10px; font-weight: bold; border: none; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; width: 100%; margin-bottom: 8px; cursor: pointer; }
   </style>
 </head>
 <body>
-
   <div id="root"></div>
-
   <script type="text/babel">
-    const { useState, useEffect } = React;
-
+    const { useState, useMemo, useEffect } = React;
     const MESES_NOM = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-    const DIAS_SEM = ["LU", "MA", "MI", "JU", "VI", "SÁ", "DO"];
+    const DIAS_L = ["L","M","X","J","V","S","D"];
+    const ANIOS_LISTA = Array.from({ length: 21 }, (_, i) => 2025 + i);
+    const toDateKey = (y, m, d) => `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 
-    // Función auxiliar para calcular la diferencia de horas con soporte para turnos nocturnos cruzados
-    function calcularDiferenciaHoras(inicio, fin) {
-      if (!inicio || !fin) return 0;
-      const [hIni, mIni] = inicio.split(':').map(Number);
-      const [hFin, mFin] = fin.split(':').map(Number);
-      
-      let difMinutos = (hFin * 60 + mFin) - (hIni * 60 + mIni);
-      if (difMinutos <= 0) {
-        // Si es negativo o cero, asumimos que cruza la medianoche hacia el día siguiente
-        difMinutos += 24 * 60;
-      }
-      return parseFloat((difMinutos / 60).toFixed(2));
+    const firebaseConfig = {
+      apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
+      authDomain: "cuadrantealfredo-8fb83.firebaseapp.com",
+      databaseURL: "https://cuadrantealfredo-8fb83-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "cuadrantealfredo-8fb83",
+      storageBucket: "cuadrantealfredo-8fb83.firebasestorage.app",
+      messagingSenderId: "220264725344",
+      appId: "1:220264725344:web:2541e92d3d396aa53d7c05"
+    };
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
+    const db = firebase.database();
+
+    // Función auxiliar global para calcular horas de diferencia entre dos marcaciones HH:MM
+    // Maneja turnos que cruzan la medianoche
+    const calcularDiferenciaHoras = (inicio, fin) => {
+      if (!inicio || !fin) return 0;
+      const [hIni, mIni] = inicio.split(":").map(Number);
+      const [hFin, mFin] = fin.split(":").map(Number);
+      if (isNaN(hIni) || !isNaN(mIni) === false || isNaN(hFin) || !isNaN(mFin) === false) return 0;
+      
+      let minutosInicio = hIni * 60 + mIni;
+      let minutosFin = hFin * 60 + mFin;
+      
+      if (minutosFin < minutosInicio) {
+        minutosFin += 24 * 60; // Añadir un día completo si pasa de la medianoche
+      }
+      
+      return Math.round(((minutosFin - minutosInicio) / 60) * 100) / 100;
+    };
 
     function App() {
-      const [year, setYear] = useState(new Date().getFullYear());
+      const [year, setYear] = useState(() => parseInt(localStorage.getItem("cuad_year_actual") || "2026"));
+      const [selected, setSelected] = useState(() => JSON.parse(localStorage.getItem("cuad_alfredo_v122_data") || "{}"));
+      
+      const [user, setUser] = useState(() => {
+        const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[], mov_arrastradas:{}};
+        try {
+          const saved = localStorage.getItem("user_alfredo_v122_config");
+          return saved ? { ...plantillaBase, ...JSON.parse(saved) } : plantillaBase;
+        } catch(e) {
+          return plantillaBase;
+        }
+      });
+      
       const [showGear, setShowGear] = useState(false);
+      const [verDetalleAp, setVerDetalleAp] = useState(false);
+      const [verDetalleExc, setVerDetalleExc] = useState(false);
+      
+      const [verDetalleGuardias, setVerDetalleGuardias] = useState(false);
+      const [verDetalleMov, setVerDetalleMov] = useState(false);
+      const [verDetalleOtros, setVerDetalleOtros] = useState(false);
+
       const [edit, setEdit] = useState(null);
+      const [tempTipo12h, setTempTipo12h] = useState("D");
+      const [mesVisible, setMesVisible] = useState(new Date().getMonth());
+
+      const [textoExportado, setTextoExportado] = useState("");
       const [mostrarModalImportar, setMostrarModalImportar] = useState(false);
       const [textoAImportar, setTextoAImportar] = useState("");
-      const [textoExportado, setTextoExportado] = useState("");
-      const [tempTipo12h, setTempTipo12h] = useState("D");
-      const [menuActivo, setMenuActivo] = useState("cuadrante");
 
-      // Estado unificado del Agente
-      const [user, setUser] = useState(() => {
-        const local = localStorage.getItem("cuadrante_user_v3");
-        if (local) {
-          try { return JSON.parse(local); } catch(e) { console.error(e); }
-        }
-        return {
-          nombre: "Agente de Guardia",
-          ingreso: 2008,
-          cuadrante: {}, 
-          periodos: [],  
-          excesos: [],   
-          ap: [],        
-          guardias: [],  
-          movilizaciones: [],
-          mov_arrastradas: {},
-          otros: []
-        };
-      });
-
-      useEffect(() => {
-        localStorage.setItem("cuadrante_user_v3", JSON.stringify(user));
+      useEffect(() => { localStorage.setItem("cuad_year_actual", year); }, [year]);
+      
+      useEffect(() => { 
+        localStorage.setItem("user_alfredo_v122_config", JSON.stringify(user));
+        db.ref('user_alfredo_v122_config').set(user).catch(e => console.log("Error nube Config:", e));
       }, [user]);
 
-      // --- LOGICA DE COPIAS DE SEGURIDAD ---
+      useEffect(() => { 
+        localStorage.setItem("cuad_alfredo_v122_data", JSON.stringify(selected));
+        db.ref('cuad_alfredo_v122_data').set(selected).catch(e => console.log("Error nube Data:", e));
+      }, [selected]);
+
+      useEffect(() => {
+        const configRef = db.ref('user_alfredo_v122_config');
+        const manejarConfig = (snapshot) => {
+          const val = snapshot.val();
+          if (val && JSON.stringify(val) !== localStorage.getItem("user_alfredo_v122_config")) {
+            const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[], mov_arrastradas:{}};
+            setUser({ ...plantillaBase, ...val });
+          }
+        };
+        configRef.on('value', manejarConfig);
+
+        const dataRef = db.ref('cuad_alfredo_v122_data');
+        const manejarData = (snapshot) => {
+          const val = snapshot.val();
+          if (val && JSON.stringify(val) !== localStorage.getItem("cuad_alfredo_v122_data")) {
+            setSelected(val);
+          }
+        };
+        dataRef.on('value', manejarData);
+
+        return () => { 
+          configRef.off('value', manejarConfig); 
+          dataRef.off('value', manejarData); 
+        };
+      }, []);
+
       const manejarExportar = () => {
-        const str = btoa(unescape(encodeURIComponent(JSON.stringify(user))));
-        setTextoExportado(str);
+        try {
+          const datosCompletos = { versionBackup: "12.21", userConfig: user, selectedData: selected };
+          const textoCifrado = btoa(unescape(encodeURIComponent(JSON.stringify(datosCompletos))));
+          setTextoExportado(textoCifrado);
+        } catch (error) {
+          alert("Error al generar la copia: " + error.message);
+        }
       };
 
       const manejarImportar = () => {
+        if (!textoAImportar.trim()) return alert("Por favor, pega un código válido primero.");
         try {
-          const dec = decodeURIComponent(escape(atob(textoAImportar.trim())));
-          const obj = JSON.parse(dec);
-          if (obj && typeof obj === 'object') {
-            setUser(obj);
+          const textoDescifrado = decodeURIComponent(escape(atob(textoAImportar.trim())));
+          const importado = JSON.parse(textoDescifrado);
+          if (importado.userConfig && importado.selectedData) {
+            const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[], mov_arrastradas:{}};
+            setUser({ ...plantillaBase, ...importado.userConfig });
+            setSelected(importado.selectedData);
+            alert("🚀 ¡Copia de seguridad restaurada con éxito!");
             setMostrarModalImportar(false);
             setTextoAImportar("");
-            alert("¡Copia de seguridad restaurada con éxito!");
+            setShowGear(false);
           } else {
-            alert("El código no tiene un formato válido.");
+            alert("El código introducido no contiene datos válidos.");
           }
-        } catch(e) {
-          alert("Error al procesar el código de restauración.");
+        } catch (err) {
+          alert("Error al restaurar los datos.");
         }
       };
 
-      // --- PASO DE AÑOS ---
-      const cambiarAnio = (dir) => setYear(prev => prev + dir);
+      const getVacationPeriod = (dk) => {
+        const parts = dk.split("-");
+        const dYear = parseInt(parts[0]);
+        const dMes = parseInt(parts[1]);
+        const dDia = parseInt(parts[2]);
 
-      // --- AUTOMATIZAR PATRÓN ---
-      const aplicarPatron = () => {
-        const startStr = document.getElementById('rStart').value;
-        const endStr = document.getElementById('rEnd').value;
-        const cHoras = document.getElementById('cHoras').value;
-        const cDW = parseInt(document.getElementById('cDW').value) || 1;
-        const cDD = parseInt(document.getElementById('cDD').value) || 4;
+        let periodoEncontrado = null;
+        (user.periodos || []).forEach(p => {
+          if (!p || !p.y || !p.mIni || !p.dIni || !p.mFin || !p.dFin) return;
+          const fInicio = new Date(p.y, p.mIni - 1, p.dIni);
+          const fFin = new Date(p.y, p.mFin - 1, p.dFin);
+          const fActual = new Date(dYear, dMes - 1, dDia);
+          if (fActual >= fInicio && fActual <= fFin) {
+            periodoEncontrado = p;
+          }
+        });
+        return periodoEncontrado;
+      };
 
-        if (!startStr || !endStr) return;
-        const dIni = new Date(startStr + 'T00:00:00');
-        const dFin = new Date(endStr + 'T00:00:00');
-        
-        let nuevoCuadrante = { ...user.cuadrante };
-        let iter = new Date(dIni);
-        let contadorDias = 0;
-        let cicloTotal = cDW + cDD;
-        let toggle12h = true;
+      const isFestivo = (dk) => {
+        const d = new Date(dk);
+        const dia = d.getDate(); const mes = d.getMonth() + 1; const anio = d.getFullYear();
+        const fijos = ["1-1", "6-1", "1-5", "15-8", "8-9", "12-10", "1-11", "6-12", "8-12", "25-12", "24-6"];
+        if (fijos.includes(`${dia}-${mes}`)) return true;
 
-        while(iter <= dFin) {
-          const yKey = iter.getFullYear();
-          const mKey = iter.getMonth() + 1;
-          const dKey = iter.getDate();
-          const dK = `${yKey}-${mKey}-${dKey}`;
+        let domingosMayo = 0; let diaArgeme = 0;
+        for (let i = 1; i <= 14; i++) {
+          if (new Date(anio, 4, i).getDay() === 0) {
+            domingosMayo++; if (domingosMayo === 2) { diaArgeme = i + 1; break; }
+          }
+        }
+        if (mes === 5 && dia === diaArgeme) return true;
 
-          let posicion = contadorDias % cicloTotal;
-          if (posicion < cDW) {
-            if (cHoras === "24") {
-              nuevoCuadrante[dK] = { tipo: "24h", descanso: false };
-            } else {
-              if (tempTipo12h === "D") {
-                nuevoCuadrante[dK] = { tipo: "12h-D", descanso: false };
-              } else if (tempTipo12h === "N") {
-                nuevoCuadrante[dK] = { tipo: "12h-N", descanso: false };
-              } else {
-                nuevoCuadrante[dK] = { tipo: toggle12h ? "12h-D" : "12h-N", descanso: false };
-                if (posicion === cDW - 1) toggle12h = !toggle12h;
+        const a = anio % 19; const b = anio % 4; const c = anio % 7;
+        const d_g = (19 * a + 24) % 30; const e = (2 * b + 4 * c + 6 * d_g + 5) % 7;
+        const marzo = 22 + d_g + e;
+        let diaPascua, mesPascua;
+        if (marzo > 31) { diaPascua = marzo - 31; mesPascua = 4; } else { diaPascua = marzo; mesPascua = 3; }
+        const pascua = new Date(anio, mesPascua - 1, diaPascua);
+        const viernesSanto = new Date(pascua); viernesSanto.setDate(pascua.getDate() - 2);
+        const juevesSanto = new Date(pascua); juevesSanto.setDate(pascua.getDate() - 3);
+        if (d.toDateString() === viernesSanto.toDateString() || d.toDateString() === juevesSanto.toDateString()) return true;
+        return false;
+      };
+
+      const stats = useMemo(() => {
+        let totalJ = 0;
+        Object.entries(selected).forEach(([dk, data]) => {
+          if (data && data.jornada) {
+            const parts = dk.split("-");
+            const dYear = parseInt(parts[0]);
+            if (dYear === year) {
+              const pVacas = getVacationPeriod(dk);
+              if (!pVacas || pVacas.esProrroga) {
+                totalJ += (data.jornada / 8);
               }
             }
-          } else {
-            nuevoCuadrante[dK] = { tipo: "libre", descanso: true };
           }
-          contadorDias++;
-          iter.setDate(iter.getDate() + 1);
+        });
+
+        (user.periodos || []).forEach(p => {
+          if (!p || !p.y || !p.mIni || !p.dIni || !p.mFin || !p.dFin) return;
+          const anioBolsaAfectada = p.esProrroga ? (p.y - 1) : p.y;
+          if (anioBolsaAfectada === year && p.esProrroga) {
+            let fInicio = new Date(p.y, p.mIni - 1, p.dIni);
+            let fFin = new Date(p.y, p.mFin - 1, p.dFin);
+            let aux = new Date(fInicio);
+            while (aux <= fFin) {
+              const dkAux = toDateKey(aux.getFullYear(), aux.getMonth(), aux.getDate());
+              const dataDia = selected[dkAux] || {};
+              if (dataDia.jornada) {
+                totalJ -= (dataDia.jornada / 8);
+              }
+              aux.setDate(aux.getDate() + 1);
+            }
+          }
+        });
+
+        const ant = year - (user.ingreso || 2008);
+        const extraVacas = ant >= 30 ? 4 : ant >= 25 ? 3 : ant >= 20 ? 2 : ant >= 15 ? 1 : 0;
+        const objetivo = 193 - extraVacas;
+        const bolsaExcesos = Math.max(0, Math.round(totalJ - objetivo));
+
+        const pedidosExc = (user.excesos || []).filter(e => {
+          if (!e || !e.dia || !e.mes || !e.turno || e.turno === "-") return false;
+          const anioBolsa = e.esProrroga ? (e.y - 1) : e.y;
+          return anioBolsa === year;
+        }).length;
+
+        const pedidosAp = (user.ap || []).filter(a => {
+          if (!a || !a.dia || !a.mes || !a.turno || a.turno === "-") return false;
+          const anioBolsa = a.esProrroga ? (a.y - 1) : a.y;
+          return anioBolsa === year;
+        }).length;
+
+        return { real: totalJ, obj: objetivo, acumulados: bolsaExcesos, consumidos: pedidosExc, apConsumidos: pedidosAp };
+      }, [selected, user, year]);
+
+      const aplicarPatron = () => {
+        const startRango = document.getElementById('rStart').value;
+        const endRango = document.getElementById('rEnd').value;
+        const h = parseInt(document.getElementById('cHoras').value);
+        const dw = parseInt(document.getElementById('cDW').value);
+        const dd = parseInt(document.getElementById('cDD').value);
+        if(!startRango || !endRango) return alert("Define inicio y fin");
+        
+        let newS = {...selected};
+        let dFin = new Date(endRango);
+        let curr = new Date(startRango);
+        while(curr <= dFin) {
+            for(let i=0; i<dw && curr <= dFin; i++){
+                const dk = toDateKey(curr.getFullYear(), curr.getMonth(), curr.getDate());
+                let tipoFinal = tempTipo12h;
+                if (h === 12 && tempTipo12h === 'D-N') tipoFinal = (i % 2 === 0) ? 'D' : 'N';
+                newS[dk] = { jornada: h, tipo: h === 12 ? `12h-${tipoFinal}` : '24h' };
+                curr.setDate(curr.getDate()+1);
+            }
+            for(let i=0; i<dd && curr <= dFin; i++){
+                const dk = toDateKey(curr.getFullYear(), curr.getMonth(), curr.getDate());
+                newS[dk] = { descanso: true };
+                curr.setDate(curr.getDate()+1);
+            }
         }
-
-        setUser({ ...user, cuadrante: nuevoCuadrante });
-        alert("Patrón cíclico aplicado con éxito en el rango seleccionado.");
-      };
-
-      // --- PANEL DE EDICIÓN RAPIDA DE CELDA ---
-      const abrirCeldaRapida = (dK) => {
-        const data = user.cuadrante[dK] || { tipo: "ninguno", descanso: false };
-        setEdit({ dK, data });
+        setSelected(newS);
+        setShowGear(false);
       };
 
       const guardarCeldaRapida = () => {
         if (!edit) return;
-        const val = document.getElementById('modalTipo').value;
-        let nuevoCuadrante = { ...user.cuadrante };
-
-        if (val === "ninguno") {
-          delete nuevoCuadrante[edit.dK];
-        } else if (val === "libre") {
-          nuevoCuadrante[edit.dK] = { tipo: "libre", descanso: true };
+        const tipoModal = document.getElementById("modalTipo").value;
+        let newS = { ...selected };
+        if (tipoModal === "libre") {
+          newS[edit.dk] = { descanso: true };
+        } else if (tipoModal === "24h") {
+          newS[edit.dk] = { jornada: 24, tipo: "24h" };
+        } else if (tipoModal === "12h-D") {
+          newS[edit.dk] = { jornada: 12, tipo: "12h-D" };
+        } else if (tipoModal === "12h-N") {
+          newS[edit.dk] = { jornada: 12, tipo: "12h-N" };
+        } else if (tipoModal === "G-24h") {
+          newS[edit.dk] = { jornada: 24, tipo: "G-24h" };
+        } else if (tipoModal === "G-12h") {
+          newS[edit.dk] = { jornada: 12, tipo: "G-12h" };
+        } else if (tipoModal === "MOV") {
+          newS[edit.dk] = { jornada: 8, tipo: "MOV" };
         } else {
-          nuevoCuadrante[edit.dK] = { tipo: val, descanso: false };
+          delete newS[edit.dk];
         }
-
-        setUser({ ...user, cuadrante: nuevoCuadrante });
+        setSelected(newS);
         setEdit(null);
       };
+      const listaExcFiltrada = useMemo(() => {
+        return (user.excesos || []).filter(e => {
+          if (!e || !e.dia || !e.mes || !e.turno || e.turno === "-") return false;
+          const esDeEsteAnioVisual = (e.y === year);
+          const esProrrogaDelAnioSiguiente = (e.y === year + 1 && e.esProrroga);
+          return esDeEsteAnioVisual || esProrrogaDelAnioSiguiente;
+        });
+      }, [user.excesos, year]);
 
-      // --- FILTROS DE TURNOS COMPATIBLES ---
-      const obtenerTurnosDisponibles = (idActual, y, m, d) => {
-        if (!m || !d) return ["M", "T", "N"];
+      const listaApFiltrada = useMemo(() => {
+        return (user.ap || []).filter(a => {
+          if (!a || !a.dia || !a.mes || !a.turno || a.turno === "-") return false;
+          const esDeEsteAnioVisual = (a.y === year);
+          const esProrrogaDelAnioSiguiente = (a.y === year + 1 && a.esProrroga);
+          return esDeEsteAnioVisual || esProrrogaDelAnioSiguiente;
+        });
+      }, [user.ap, year]);
+
+      const obtenerTurnosDisponibles = (idActual, anio, mes, dia) => {
+        if (!mes || !dia) return ["M", "T", "N"];
         let turnosOcupados = [];
         
-        (user.excesos || []).forEach(x => {
-          if (x.id !== idActual && x.y === y && x.mes === m && x.dia === d && !x.esProrroga) {
-            turnosOcupados.push(x.turno);
+        (user.excesos || []).forEach(e => {
+          if (e && e.id !== idActual && e.y === anio && e.mes === mes && e.dia === dia && e.turno && e.turno !== "-") {
+            turnosOcupados.push(e.turno);
           }
         });
+        
         (user.ap || []).forEach(a => {
-          if (a.id !== idActual && a.y === y && a.mes === m && a.dia === d && !a.esProrroga) {
+          if (a && a.id !== idActual && a.y === anio && a.mes === mes && a.dia === dia && a.turno && a.turno !== "-") {
             turnosOcupados.push(a.turno);
           }
         });
-
+        
         return ["M", "T", "N"].filter(t => !turnosOcupados.includes(t));
       };
 
-      // --- CALCULADORES DE BOLSAS ANUALES ---
-      const calculosAnuales = () => {
-        // 1. Vacaciones y Prórrogas
-        let diasVacaciones = 0;
-        let diasProrrogaVac = 0;
-        (user.periodos || []).forEach(p => {
-          if (p && p.y === year && p.dIni && p.mIni && p.dFin && p.mFin) {
-            const f1 = new Date(year, p.mIni - 1, p.dIni);
-            const f2 = new Date(year, p.mFin - 1, p.dFin);
-            const diff = Math.floor((f2 - f1) / (1000 * 60 * 60 * 24)) + 1;
-            if (diff > 0) {
-              if (p.esProrroga) diasProrrogaVac += diff;
-              else diasVacaciones += diff;
-            }
-          }
-        });
+      // --- CÁLCULOS DINÁMICOS DE MOVILIZACIONES (HORAS EXTRAS BASADAS EN RANGO) ---
+      const movArrastradasAnual = useMemo(() => {
+        return (user.mov_arrastradas && user.mov_arrastradas[year]) ? parseInt(user.mov_arrastradas[year]) : 0;
+      }, [user.mov_arrastradas, year]);
 
-        // 2. Asuntos Propios
-        let apDisfrutados = 0;
-        let apProrroga = 0;
-        (user.ap || []).forEach(a => {
-          if (a && a.y === year && a.dia && a.mes && a.turno !== "-") {
-            if (a.esProrroga) apProrroga++;
-            else apDisfrutados++;
-          }
-        });
+      const totalHorasMovHechas = useMemo(() => {
+        return (user.movilizaciones || [])
+          .filter(m => m && m.y === year)
+          .reduce((s, c) => s + (calcularDiferenciaHoras(c.horaInicio, c.horaFin) || 0), 0);
+      }, [user.movilizaciones, year]);
 
-        // 3. Excesos de Jornada
-        let excDisfrutados = 0;
-        let excProrroga = 0;
-        (user.excesos || []).forEach(e => {
-          if (e && e.y === year && e.dia && e.mes && e.turno !== "-") {
-            if (e.esProrroga) excProrroga++;
-            else excDisfrutados++;
-          }
-        });
-
-        // 4. Bolsa de Movilizaciones (Cálculo dinámico basado en rangos horarios)
-        let totalMovilizaciones = 0;
-        (user.movilizaciones || []).forEach(m => {
-          if (m && m.y === year && m.dia && m.mes) {
-            totalMovilizaciones += calcularDiferenciaHoras(m.horaInicio, m.horaFin);
-          }
-        });
-        const arrastradas = (user.mov_arrastradas && user.mov_arrastradas[year]) || 0;
-        const bolsaMovTotal = totalMovilizaciones + arrastradas;
-
-        // Antigüedad (Trienios)
-        const canios = Math.max(0, year - user.ingreso);
-        const trienios = Math.floor(canios / 3);
-
-        return {
-          diasVacaciones, diasProrrogaVac,
-          apDisfrutados, apProrroga,
-          excDisfrutados, excProrroga,
-          bolsaMovTotal, totalMovilizaciones, arrastradas,
-          trienios
-        };
-      };
-
-      const calc = calculosAnuales();
-
-      // --- RENDERIZADO DEL CALENDARIO ---
-      const renderMes = (mIdx) => {
-        const primerDia = new Date(year, mIdx, 1);
-        const ultimoDia = new Date(year, mIdx + 1, 0);
-        
-        let diaInicioSem = primerDia.getDay(); 
-        if (diaInicioSem === 0) diaInicioSem = 7; 
-
-        const totalDias = ultimoDia.getDate();
-        const celdas = [];
-
-        // Huecos mes anterior
-        for (let i = 1; i < diaInicioSem; i++) {
-          celdas.push(<div key={`empty-${i}`} className="day-cell prev-next"></div>);
-        }
-
-        // Días reales del mes
-        for (let d = 1; d <= totalDias; d++) {
-          const dK = `${year}-${mIdx + 1}-${d}`;
-          const currentFecha = new Date(year, mIdx, d);
-          const esFinde = currentFecha.getDay() === 0 || currentFecha.getDay() === 6;
-
-          // Info de Turno
-          const tInfo = user.cuadrante[dK];
-          let turnoBadge = null;
-          if (tInfo) {
-            if (tInfo.tipo === "24h") turnoBadge = <span className="badge-turno t-24h">24h</span>;
-            else if (tInfo.tipo === "12h-D") turnoBadge = <span className="badge-turno t-12h-D">12h-D</span>;
-            else if (tInfo.tipo === "12h-N") turnoBadge = <span className="badge-turno t-12h-N">12h-N</span>;
-            else if (tInfo.tipo === "G-24h") turnoBadge = <span className="badge-turno t-guardia">🛡️24h</span>;
-            else if (tInfo.tipo === "G-12h") turnoBadge = <span className="badge-turno t-guardia">🛡️12h</span>;
-            else if (tInfo.tipo === "MOV") turnoBadge = <span className="badge-turno t-24h" style={{background:'#8B5CF6'}}>MOV</span>;
-            else if (tInfo.tipo === "libre") turnoBadge = <span className="badge-turno t-libre">L</span>;
-          }
-
-          // Cruce de indicadores visuales (Puntos)
-          let tieneVac = false;
-          (user.periodos || []).forEach(p => {
-            if (p && p.y === year && p.dIni && p.mIni && p.dFin && p.mFin) {
-              const start = new Date(year, p.mIni - 1, p.dIni);
-              const end = new Date(year, p.mFin - 1, p.dFin);
-              if (currentFecha >= start && currentFecha <= end) tieneVac = true;
-            }
-          });
-
-          const tieneAp = (user.ap || []).some(a => a && a.y === year && a.mes === (mIdx + 1) && a.dia === d && a.turno !== "-");
-          const tieneExc = (user.excesos || []).some(e => e && e.y === year && e.mes === (mIdx + 1) && e.dia === d && e.turno !== "-");
-          
-          // Buscar movilizaciones del día para pintar el rango y las horas calculadas
-          const movsDelDia = (user.movilizaciones || []).filter(m => m && m.y === year && m.mes === (mIdx + 1) && m.dia === d);
-          const tieneMov = movsDelDia.length > 0;
-
-          celdas.push(
-            <div key={d} className={`day-cell ${esFinde ? 'weekend' : ''}`} onClick={() => abrirCeldaRapida(dK)}>
-              <span className="day-number">{d}</span>
-              {turnoBadge}
-              
-              {/* Bloque visual dinámico para Movilizaciones en la celda del calendario */}
-              {tieneMov && movsDelDia.map(m => (
-                <div key={m.id} className="mov-hours-label">
-                  {m.horaInicio}-{m.horaFin} ({calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h)
-                </div>
-              ))}
-
-              <div className="indicator-container">
-                {tieneVac && <span className="ind-dot ind-vac"></span>}
-                {tieneAp && <span className="ind-dot ind-ap"></span>}
-                {tieneExc && <span className="ind-dot ind-exc"></span>}
-                {tieneMov && <span className="ind-dot ind-mov"></span>}
-              </div>
-            </div>
-          );
-        }
-
-        return (
-          <div key={mIdx} className="month-container">
-            <div className="month-header">
-              <span>{MESES_NOM[mIdx]}</span>
-              <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
-            </div>
-            <div className="days-grid">
-              {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
-              {celdas}
-            </div>
-          </div>
-        );
-      };
+      const limiteMovTotalMaximo = useMemo(() => {
+        return 65 + movArrastradasAnual;
+      }, [movArrastradasAnual]);
 
       return (
-        <div className="container">
-          
-          {/* --- CABECERA --- */}
-          <header>
-            <div className="user-info">
-              <h1>{user.nombre}</h1>
-              <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
+        <div>
+          {/* --- PANEL SELECCIÓN AÑO --- */}
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'12px', background:'white', padding:'10px', borderRadius:'12px', border:'1px solid #E2E8F0'}}>
+            <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+              <h1 style={{fontSize:'16px'}}>📅 CUADRANTE:</h1>
+              <select value={year} onChange={(e) => setYear(parseInt(e.target.value))} style={{width:'90px', padding:'6px', fontWeight:'bold', color:'var(--primary)'}}>
+                {ANIOS_LISTA.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
             </div>
-            <div className="header-actions">
-              <button className="btn-icon" onClick={() => setShowGear(true)}><i className="fa-solid fa-gear"></i></button>
-            </div>
-          </header>
-
-          {/* --- SELECTOR DE AÑO --- */}
-          <div className="year-controls">
-            <button className="btn-text" onClick={() => cambiarAnio(-1)}><i className="fa-solid fa-chevron-left"></i> Anterior</button>
-            <span className="year-display">{year}</span>
-            <button className="btn-text" onClick={() => cambiarAnio(1)}>Siguiente <i className="fa-solid fa-chevron-right"></i></button>
+            <button onClick={() => setShowGear(true)} style={{fontSize:'20px', background:'none', border:'none', color:'#475569'}}><i className="fa-solid fa-gear"></i></button>
           </div>
 
-          {/* --- MÓDULO PRINCIPAL SEGÚN MENÚ ACTIVADO --- */}
-          {menuActivo === "cuadrante" && (
-            <>
-              {/* Cuadrícula Anual de Meses */}
-              {Array.from({length:12}, (_, i) => renderMes(i))}
-            </>
-          )}
+          {/* --- NAVEGACIÓN MES --- */}
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px', background:'#fff', borderRadius:'12px', marginBottom:'12px', border:'1px solid #E2E8F0' }}>
+            <button onClick={() => setMesVisible(prev => (prev > 0 ? prev - 1 : 11))} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background:'#F1F5F9', fontSize:'16px' }}>⬅️</button>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontWeight:'800', fontSize:'15px', color:'#1E293B' }}>{MESES_NOM[mesVisible].toUpperCase()}</div>
+            </div>
+            <button onClick={() => setMesVisible(prev => (prev < 11 ? prev + 1 : 0))} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background:'#F1F5F9', fontSize:'16px' }}>➡️</button>
+          </div>
 
-          {menuActivo === "bolsas" && (
-            <div style={{animation: 'fadeIn 0.2s ease-out'}}>
-              <h2 style={{fontSize:'16px', marginBottom:'12px', fontWeight:'800'}}>Bolsas y Cómputos Globales ({year})</h2>
-              <div className="summary-grid">
-                <div className="summary-card">
-                  <span className="label">🏖️ Vacaciones</span>
-                  <span className="value">{calc.diasVacaciones} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>días</span></span>
-                  <span className="sublabel">Anuladas/Prorroga: {calc.diasProrrogaVac} d</span>
-                </div>
-                <div className="summary-card">
-                  <span className="label">🟡 Asuntos Propios</span>
-                  <span className="value">{calc.apDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
-                  <span className="sublabel">Prorrogados: {calc.apProrroga}</span>
-                </div>
-                <div className="summary-card">
-                  <span className="label">🟢 Excesos</span>
-                  <span className="value">{calc.excDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
-                  <span className="sublabel">Prorrogados: {calc.excProrroga}</span>
-                </div>
-                <div className="summary-card highlight-purple">
-                  <span className="label" style={{color:'#A78BFA'}}>⏱️ Bolsa Movilizaciones</span>
-                  <span className="value" style={{color:'#C084FC'}}>{calc.bolsaMovTotal} <span style={{fontSize:'12px'}}>horas</span></span>
-                  <span className="sublabel">Nuevas: {calc.totalMovilizaciones}h | Arrastre: {calc.arrastradas}h</span>
-                </div>
+          {/* --- TARJETAS INDICADORAS BASE --- */}
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'6px', marginBottom:'6px'}}>
+            <div className="card" style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid var(--primary)'}}>
+              <label style={{fontSize:'8px'}}>JORNADAS TOTAL</label>
+              <b style={{fontSize:'15px'}}>{stats.real.toFixed(1)}</b>
+            </div>
+            <div className="card" style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid #64748B'}}>
+              <label style={{fontSize:'8px'}}>OBJETIVO</label>
+              <b style={{fontSize:'15px'}}>{stats.obj}</b>
+            </div>
+            <div className="card" onClick={() => { setVerDetalleAp(false); setVerDetalleGuardias(false); setVerDetalleMov(false); setVerDetalleOtros(false); setVerDetalleExc(!verDetalleExc); }} style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid #22C55E', cursor:'pointer'}}>
+              <label style={{fontSize:'8px'}}>EXCESOS</label>
+              <b style={{fontSize:'15px'}}>{stats.consumidos} / {stats.acumulados}</b>
+            </div>
+            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleGuardias(false); setVerDetalleMov(false); setVerDetalleOtros(false); setVerDetalleAp(!verDetalleAp); }} style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid var(--ap-color)', cursor:'pointer'}}>
+              <label style={{fontSize:'8px'}}>A. PROPIOS</label>
+              <b style={{fontSize:'15px'}}>
+                {stats.apConsumidos} / {(() => {
+                  const ant = year - (user.ingreso || 2008);
+                  let base = 6;
+                  if (ant >= 30) base += 5; else if (ant >= 27) base += 4; else if (ant >= 24) base += 3;
+                  else if (ant >= 21) base += 2; else if (ant >= 18) base += 1;
+                  return base;
+                })()}
+              </b>
+            </div>
+          </div>
+
+          {/* --- FILA DE TARJETAS INDICADORAS (MÓDULOS ACTUALIZADOS) --- */}
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'6px', marginBottom:'12px'}}>
+            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleMov(false); setVerDetalleOtros(false); setVerDetalleGuardias(!verDetalleGuardias); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #F59E0B', cursor:'pointer', background:'white'}}>
+              <label style={{fontSize:'8px', color:'#D97706'}}>🛡️ GUARDIAS</label>
+              <b style={{fontSize:'12px'}}>{(user.guardias || []).filter(g => g && g.y === year).length} ({(user.guardias || []).filter(g => g && g.y === year).reduce((s,c)=>s+(c.horas||0),0)}h)</b>
+            </div>
+            {/* Tarjeta de Movilizaciones Pulida */}
+            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleGuardias(false); setVerDetalleOtros(false); setVerDetalleMov(!verDetalleMov); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #8B5CF6', cursor:'pointer', background:'white'}}>
+              <label style={{fontSize:'8px', color:'#7C3AED'}}><i className="fa-solid fa-user-clock"></i> MOVILIZAC.</label>
+              <b style={{fontSize:'12px', color: totalHorasMovHechas > limiteMovTotalMaximo ? 'var(--danger)' : 'inherit'}}>
+                {totalHorasMovHechas} / {limiteMovTotalMaximo}h
+              </b>
+            </div>
+            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleGuardias(false); setVerDetalleMov(false); setVerDetalleOtros(!verDetalleOtros); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #06B6D4', cursor:'pointer', background:'white'}}>
+              <label style={{fontSize:'8px', color:'#0891B2'}}>💼 OTROS</label>
+              <b style={{fontSize:'12px'}}>{(user.otros || []).filter(o => o && o.y === year).length}</b>
+            </div>
+          </div>
+
+          {/* --- DESGLOSE EXCESOS DESPLEGABLE --- */}
+          {verDetalleExc && (
+            <div className="card" style={{borderColor:'#22C55E', background:'#F8FAFC'}}>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
+                <h4 style={{fontSize:'12px', color:'#16A34A'}}>Historial Excesos - Bolsa {year}</h4>
+                <button onClick={() => setVerDetalleExc(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
               </div>
-
-              {/* Vista resumida de detalles en pestaña Bolsas */}
-              <div className="card" style={{background:'var(--surface)', borderColor:'var(--border)', color:'white'}}>
-                <h3 style={{fontSize:'14px', marginBottom:'8px'}}>Desglose de Movilizaciones</h3>
-                {(user.movilizaciones || []).filter(m => m && m.y === year).length === 0 ? (
-                  <p style={{fontSize:'12px', color:'var(--text-muted)'}}>No hay movilizaciones registradas este año.</p>
-                ) : (
-                  <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
-                    {(user.movilizaciones || []).filter(m => m && m.y === year).map(m => (
-                      <div key={m.id} style={{display:'flex', justifyContent:'space-between', fontSize:'12px', background:'var(--primary-light)', padding:'6px 10px', borderRadius:'6px'}}>
-                        <span>Día {m.dia} de {MESES_NOM[m.mes-1]}</span>
-                        <span style={{fontWeight:'bold', color:'#A78BFA'}}>{m.horaInicio} a {m.horaFin} ({calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h)</span>
-                      </div>
-                    ))}
+              {listaExcFiltrada.length ? listaExcFiltrada.map((item, idx) => {
+                let etiquetaAnio = "";
+                if (item.y === year) {
+                  etiquetaAnio = item.esProrroga ? "(Año Anterior)" : `(${year})`;
+                } else if (item.y === year + 1 && item.esProrroga) {
+                  etiquetaAnio = `(${year + 1})`;
+                }
+                return (
+                  <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#DCFCE7', borderRadius:'6px', marginBottom:'4px', fontSize:'12px'}}>
+                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]} {etiquetaAnio}</b>
+                    <span>Turno: {item.turno}</span>
                   </div>
-                )}
-              </div>
+                );
+              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay excesos consumidos en esta bolsa.</p>}
             </div>
           )}
 
-          {/* --- MENÚ INFERIOR DE ACCESOS RÁPIDOS --- */}
-          <div className="bottom-menu">
-            <button className={`menu-item ${menuActivo === "cuadrante" ? "active" : ""}`} onClick={() => setMenuActivo("cuadrante")}>
-              <i className="fa-solid fa-calendar-days"></i>
-              Cuadrante
-            </button>
-            <button className={`menu-item ${menuActivo === "bolsas" ? "active" : ""}`} onClick={() => setMenuActivo("bolsas")}>
-              <i className="fa-solid fa-chart-pie"></i>
-              Bolsas / Totales
-            </button>
-          </div>
+          {/* --- DESGLOSE ASUNTOS PROPIOS DESPLEGABLE --- */}
+          {verDetalleAp && (
+            <div className="card" style={{borderColor:'var(--ap-color)', background:'#F8FAFC'}}>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
+                <h4 style={{fontSize:'12px', color:'#854D0E'}}>Historial Asuntos Propios - Bolsa {year}</h4>
+                <button onClick={() => setVerDetalleAp(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
+              </div>
+              {listaApFiltrada.length ? listaApFiltrada.map((item, idx) => {
+                let etiquetaAnio = "";
+                if (item.y === year) {
+                  etiquetaAnio = item.esProrroga ? "(Año Anterior)" : `(${year})`;
+                } else if (item.y === year + 1 && item.esProrroga) {
+                  etiquetaAnio = `(${year + 1})`;
+                }
+                return (
+                  <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#FEF08A', borderRadius:'6px', marginBottom:'4px', fontSize:'12px'}}>
+                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]} {etiquetaAnio}</b>
+                    <span>Turno: {item.turno}</span>
+                  </div>
+                );
+              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay asuntos propios consumidos en esta bolsa.</p>}
+            </div>
+          )}
 
+          {/* --- DESGLOSE GUARDIAS DESPLEGABLE --- */}
+          {verDetalleGuardias && (
+            <div className="card" style={{borderColor:'#F59E0B', background:'#F8FAFC'}}>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
+                <h4 style={{fontSize:'12px', color:'#D97706'}}>Historial Anual de Guardias {year}</h4>
+                <button onClick={() => setVerDetalleGuardias(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
+              </div>
+              {(user.guardias || []).filter(g => g && g.y === year).length ? (user.guardias || []).filter(g => g && g.y === year).map((item, idx) => (
+                <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#FEF3C7', borderRadius:'6px', marginBottom:'4px', fontSize:'12px', borderLeft:'4px solid #F59E0B'}}>
+                  <b>Día {item.dia} de {MESES_NOM[item.mes-1]}</b>
+                  <span>{item.tipo} ({item.horas}h)</span>
+                </div>
+              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay guardias anotadas este año.</p>}
+            </div>
+          )}
+
+          {/* --- DESGLOSE MOVILIZACIONES ACTUALIZADO CON FORMATO DE RANGOS --- */}
+          {verDetalleMov && (
+            <div className="card" style={{borderColor:'#8B5CF6', background:'#F8FAFC'}}>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'6px'}}>
+                <h4 style={{fontSize:'12px', color:'#7C3AED'}}>📋 Historial Anual de Movilizaciones {year}</h4>
+                <button onClick={() => setVerDetalleMov(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
+              </div>
+              
+              <div style={{fontSize:'11px', color:'#475569', marginBottom:'8px', background:'#EEF2F6', padding:'6px', borderRadius:'6px'}}>
+                Límite Extraordinario Base: <b>65h</b> {movArrastradasAnual > 0 ? `+ ${movArrastradasAnual}h del año anterior = ${limiteMovTotalMaximo}h máx.` : ''}
+              </div>
+
+              {(user.movilizaciones || []).filter(m => m && m.y === year).length ? (user.movilizaciones || []).filter(m => m && m.y === year).map((item, idx) => {
+                const hTotales = calcularDiferenciaHoras(item.horaInicio, item.horaFin);
+                return (
+                  <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#E0E7FF', borderRadius:'6px', marginBottom:'4px', fontSize:'12px', borderLeft:'4px solid #8B5CF6'}}>
+                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]} de {item.horaInicio || "00:00"} a {item.horaFin || "00:00"}</b>
+                    <span style={{fontWeight:'bold', color:'#4F46E5'}}>{hTotales} Horas extras</span>
+                  </div>
+                );
+              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay movilizaciones anotadas en el año {year}.</p>}
+            </div>
+          )}
+
+          {/* --- DESGLOSE OTROS DESPLEGABLE --- */}
+          {verDetalleOtros && (
+            <div className="card" style={{borderColor:'#06B6D4', background:'#F8FAFC'}}>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
+                <h4 style={{fontSize:'12px', color:'#0891B2'}}>Otros Conceptos / Cursos / Comisiones {year}</h4>
+                <button onClick={() => setVerDetalleOtros(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
+              </div>
+              {(user.otros || []).filter(o => o && o.y === year).length ? (user.otros || []).filter(o => o && o.y === year).map((item, idx) => (
+                <div key={idx} style={{display:'block', padding:'6px', background:'#E0F2FE', borderRadius:'6px', marginBottom:'4px', fontSize:'12px', borderLeft:'4px solid #06B6D4'}}>
+                  <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]}</b>
+                    <span><b>{item.horas}h</b></span>
+                  </div>
+                  {item.concepto && <div style={{fontSize:'11px', color:'#475569', marginTop:'2px'}}>Motivo: {item.concepto}</div>}
+                </div>
+              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay otros reconocimientos anotados este año.</p>}
+            </div>
+          )}
+
+          {/* --- CALENDARIO --- */}
+          <div className="card">
+            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'6px', flexWrap:'wrap', gap:'4px'}}>
+              <span style={{fontSize:'12px', fontWeight:'bold', color:'var(--primary)'}}>{MESES_NOM[mesVisible].toUpperCase()} {year}</span>
+              <div style={{fontSize:'9px', display:'flex', gap:'5px', flexWrap:'wrap', justifyContent:'flex-end'}}>
+                <span style={{color:'var(--hs-color)', fontWeight:'bold'}}>{(user.hs || []).filter(h => h && h.y === year && h.mes === (mesVisible+1)).reduce((s,c)=>s+c.horas, 0)}h HS</span>
+                <span style={{color:'#10B981', fontWeight:'bold'}}>{(user.per || []).filter(p => p && p.y === year && p.mes === (mesVisible+1)).reduce((s,c)=>s+c.horas, 0)}h PER</span>
+                <span style={{color:'#F59E0B', fontWeight:'bold'}}>{(user.guardias || []).filter(g => g && g.y === year && g.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0),0)}h GUARD</span>
+                <span style={{color:'#8B5CF6', fontWeight:'bold'}}>{(user.movilizaciones || []).filter(m => m && m.y === year && m.mes === (mesVisible+1)).reduce((s,c)=>s+(calcularDiferenciaHoras(c.horaInicio, c.horaFin)||0),0)}h MOV</span>
+                <span style={{color:'#06B6D4', fontWeight:'bold'}}>{(user.otros || []).filter(o => o && o.y === year && o.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0),0)}h OTR</span>
+              </div>
+            </div>
+
+            <div className="grid-cal">
+              {DIAS_L.map(l => <div key={l} style={{fontSize:'10px', opacity:0.4, textAlign:'center'}}>{l}</div>)}
+              {Array(new Date(year, mesVisible, 1).getDay() === 0 ? 6 : new Date(year, mesVisible, 1).getDay() - 1).fill(0).map((_, i) => <div key={i} />)}
+              {Array.from({ length: new Date(year, mesVisible + 1, 0).getDate() }, (_, i) => i + 1).map(d => {
+                const dk = toDateKey(year, mesVisible, d);
+                const pVacas = getVacationPeriod(dk);
+                const fes = isFestivo(dk);
+                
+                const aps = (user.ap || []).filter(a => a && a.y === year && a.mes === (mesVisible+1) && a.dia === d && a.turno && a.turno !== "-");
+                const excs = (user.excesos || []).filter(e => e && e.y === year && e.mes === (mesVisible+1) && e.dia === d && e.turno && e.turno !== "-");
+                const hasHS = (user.hs || []).some(h => h && h.y === year && h.mes === (mesVisible+1) && h.dia === d);
+                
+                const hasGuardia = (user.guardias || []).some(g => g && g.y === year && g.mes === (mesVisible+1) && g.dia === d);
+                
+                // Buscar si este día específico tiene una movilización asignada
+                const movDelDia = (user.movilizaciones || []).find(m => m && m.y === year && m.mes === (mesVisible+1) && m.dia === d);
+                const hasMovilizacion = !!movDelDia;
+                
+                const hasOtros = (user.otros || []).some(o => o && o.y === year && o.mes === (mesVisible+1) && o.dia === d);
+                
+                const data = selected[dk] || {};
+                const is12h = data.tipo && data.tipo.startsWith('12h');
+                
+                let bg = "white";
+                if (pVacas) bg = "#FEF9C3"; 
+                else if (data.tipo === 'G-24h' || data.tipo === 'G-12h') bg = "#FEF3C7"; 
+                else if (data.tipo === 'MOV') bg = "#E0E7FF"; 
+                else if (is12h) bg = data.tipo === '12h-N' ? "#C2410C" : "#FB923C";
+                else if (data.jornada) bg = "#FEE2E2";
+                else if (data.descanso) bg = "#DCFCE7";
+                
+                return (
+                  <button key={dk} className="dia-btn" style={{background: bg}} onClick={() => setEdit({dk, data})}>
+                    <span style={{ color: fes ? 'var(--danger)' : 'inherit', fontWeight: fes ? 'bold' : 'none' }}>{d}</span>
+                    {aps.map((a,i) => <div key={i} className={`ap-line ap-${a.turno}`} />)}
+                    {excs.map((e,i) => <div key={i} className={`ap-line ap-${e.turno}`} style={{background:'#22C55E'}} />)}
+                    {hasHS && <div className="hs-dot" />}
+                    
+                    {hasGuardia && <div className="guardia-dot" />}
+                    {hasMovilizacion && <div className="mov-dot" />}
+                    {hasOtros && <div className="otr-dot" />}
+                    
+                    {/* Renderizado de etiquetas normales */}
+                    {data.jornada > 0 && !pVacas && (
+                      <span style={{
+                        fontSize:'9px', 
+                        color: (is12h || data.tipo?.startsWith('G-')) ? 'white' : 'red', 
+                        background: data.tipo?.startsWith('G-') ? '#D97706' : 'transparent',
+                        padding: data.tipo?.startsWith('G-') ? '1px 3px' : '0',
+                        borderRadius: '3px',
+                        fontWeight:'bold', 
+                        zIndex:10
+                      }}>
+                        {data.tipo === 'G-24h' ? 'G24' : data.tipo === 'G-12h' ? 'G12' : data.tipo === 'MOV' ? 'MOV' : is12h ? data.tipo.split('-')[1] : data.jornada + 'h'}
+                      </span>
+                    )}
+
+                    {/* MUESTRA EL RANGO HORARIO SOLICITADO JUSTO DEBAJO DEL NÚMERO EN COLOR MORADO */}
+                    {hasMovilizacion && (
+                      <span style={{
+                        fontSize: '8px',
+                        color: '#8B5CF6',
+                        fontWeight: 'bold',
+                        marginTop: '2px',
+                        zIndex: 10,
+                        lineHeight: '1'
+                      }}>
+                        {movDelDia.horaInicio || "00:00"}-{movDelDia.horaFin || "00:00"}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
           {/* --- MODAL EDICIÓN CELDA RAPIDA --- */}
           {edit && (
             <div className="modal" onClick={() => setEdit(null)}>
@@ -986,7 +837,7 @@
                   <button className="btn-primary" style={{background:'#F59E0B', color:'white'}} onClick={() => setUser({...user, guardias: [...(user.guardias || []), {id:Date.now(), y:year, dia:null, mes:null, tipo:"Localizada", horas:24}]})}>+ AÑADIR REGISTRO GUARDIA</button>
                 </div>
 
-                {/* --- GESTOR DE MOVILIZACIONES (HORAS EXTRAS POR RANGO) --- */}
+                {/* --- GESTOR DE MOVILIZACIONES REDISEÑADO CON RANGOS HORARIOS --- */}
                 <div className="card" style={{borderTop:'3px solid #8B5CF6'}}>
                   <label><i className="fa-solid fa-user-clock"></i> CONFIGURAR MOVILIZACIONES (HORAS EXTRAS - {year})</label>
                   
@@ -1020,15 +871,15 @@
                           <option value="" disabled>Mes</option>{MESES_NOM.map((mName,i)=><option key={i} value={i+1}>{mName.slice(0,3)}</option>)}
                         </select>
                         
-                        {/* SELECTORES DE INTERVALO EN LUGAR DE CAJA MANUAL NUMÉRICA */}
+                        {/* NUEVOS SELECTORES DE RANGOS DE TIEMPO (Sustituyen al input numérico fijo) */}
                         <div style={{display:'flex', alignItems:'center', gap:'2px', background:'#F1F5F9', padding:'2px 4px', borderRadius:'6px'}}>
                           <input type="time" value={m.horaInicio || "00:00"} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horaInicio:e.target.value}:x)})} style={{padding:'2px', fontSize:'11px', border:'1px solid #CBD5E1', borderRadius:'4px'}} />
                           <span style={{fontSize:'10px', fontWeight:'bold', color:'#64748B'}}>a</span>
                           <input type="time" value={m.horaFin || "00:00"} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horaFin:e.target.value}:x)})} style={{padding:'2px', fontSize:'11px', border:'1px solid #CBD5E1', borderRadius:'4px'}} />
                         </div>
                         
-                        {/* Cálculo matemático reactivo e instantáneo */}
-                        <div style={{fontSize:'11px', fontWeight:'bold', color:'#4F46E5', minWidth:'40px', textAlign:'center'}}>
+                        {/* Indicador visual de cálculo dinámico */}
+                        <div style={{fontSize:'11px', fontWeight:'bold', color:'#4F46E5', minWidth:'40px', textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center'}}>
                           {calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h
                         </div>
                       </div>
