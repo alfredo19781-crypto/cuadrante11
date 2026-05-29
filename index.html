@@ -577,21 +577,22 @@ useEffect(() => {
     root.render(<App />);
   </script>
   <script type="module">
-  // --- CONFIGURACIÓN DE FIREBASE (Sin 'import', para evitar errores) ---
-const firebaseConfig = {
-  apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
-  authDomain: "cuadrantealfredo-8fb83.firebaseapp.com",
-  databaseURL: "https://cuadrantealfredo-8fb83-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "cuadrantealfredo-8fb83",
-  storageBucket: "cuadrantealfredo-8fb83.firebasestorage.app",
-  messagingSenderId: "220264725344",
-  appId: "1:220264725344:web:2541e92d3d396aa53d7c05"
-};
-
-// Usamos las variables globales que ya carga Firebase en tu HTML
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const { ref, onValue, set } = firebase.database;
+// --- CONFIGURACIÓN SEGURA PARA SINCRONIZAR ---
+window.addEventListener('load', () => {
+    // Solo si el objeto 'firebase' ya está listo, inicializamos
+    if (typeof firebase !== 'undefined' && !firebase.apps.length) {
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
+            authDomain: "cuadrantealfredo-8fb83.firebaseapp.com",
+            databaseURL: "https://cuadrantealfredo-8fb83-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "cuadrantealfredo-8fb83",
+            storageBucket: "cuadrantealfredo-8fb83.firebasestorage.app",
+            messagingSenderId: "220264725344",
+            appId: "1:220264725344:web:2541e92d3d396aa53d7c05"
+        };
+        firebase.initializeApp(firebaseConfig);
+    }
+});
 
 // Variable para evitar el bucle
 let bloqueado = false;
