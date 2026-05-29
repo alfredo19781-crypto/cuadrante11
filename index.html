@@ -77,9 +77,32 @@
       const [textoAImportar, setTextoAImportar] = useState("");
 
       useEffect(() => { localStorage.setItem("cuad_year_actual", year); }, [year]);
-      useEffect(() => { localStorage.setItem("user_alfredo_v122_config", JSON.stringify(user)); }, [user]);
+      useEffect(() => { 
+    localStorage.setItem("user_alfredo_v122_config", JSON.stringify(user));
+    // Añadimos esta llamada para que se envíe a la nube cada vez que 'user' cambie:
+    window.guardarEnNube(user, 'config'); 
+}, [user]);
       useEffect(() => { localStorage.setItem("cuad_alfredo_v122_data", JSON.stringify(selected)); }, [selected]);
+// ESCUCHAR CAMBIOS DE CONFIGURACIÓN DESDE LA NUBE
+useEffect(() => {
+  const configRef = ref(db, 'user_alfredo_v122_config');
+  
+  const unsubscribe = onValue(configRef, (snapshot) => {
+    const configData = snapshot.val();
+   // Comprobamos si hay datos y si son diferentes a lo que ya tenemos
+if (configData && JSON.stringify(configData) !== JSON.stringify(user)) {
+    console.log("Configuración nueva recibida. Actualizando...");
+    
+    // 1. Guardamos en el móvil
+    localStorage.setItem("user_alfredo_v122_config", JSON.stringify(configData));
+    
+    // 2. Actualizamos la pantalla automáticamente
+    setUser(configData); 
+}
+  });
 
+  return () => unsubscribe(); // Limpiamos al salir
+}, []);
       const manejarExportar = () => {
         try {
           const datosCompletos = { versionBackup: "12.16", userConfig: user, selectedData: selected };
@@ -587,16 +610,29 @@ onValue(ref(db, 'cuad_alfredo_v122_data'), (snapshot) => {
     console.log("Datos recibidos y actualizados en memoria.");
   }
 });
-
+// ESCUCHAR CAMBIOS DE CONFIGURACIÓN
+onValue(ref(db, 'user_alfredo_v122_config'), (snapshot) => {
+  const configData = snapshot.val();
+  if (configData) {
+    // Si los datos son distintos a los actuales, actualizamos
+    localStorage.setItem('user_alfredo_v122_config', JSON.stringify(configData));
+    console.log("Configuración recibida desde la nube.");
+    // NOTA: Si necesitas que la app reaccione en tiempo real al cambio, 
+    // aquí deberías disparar una función para actualizar el estado 'user' de React
+  }
+});
 // 2. GUARDAR CAMBIOS: Solo guarda si no estamos bloqueados
-window.guardarEnNube = function(datos) {
-  if (bloqueado) return; 
-  console.log("Enviando datos a Firebase...", datos); // Esto te dirá en la consola si funciona
-  set(ref(db, 'cuad_alfredo_v122_data'), datos).then(() => {
-    console.log("¡Datos subidos con éxito!");
-  }).catch((error) => {
-    console.error("Error al subir:", error);
-  });
+window.guardarEnNube = function(datos, tipo = 'datos') {
+    if (bloqueado) return;
+    
+    // Si tipo es 'config', guardamos en la estantería de configuración, si no, en la del calendario
+    const llave = (tipo === 'config') ? 'user_alfredo_v122_config' : 'cuad_alfredo_v122_data';
+    
+    console.log("Enviando " + tipo + " a Firebase...", datos);
+    
+    set(ref(db, llave), datos)
+        .then(() => console.log("¡Éxito! Datos subidos."))
+        .catch((error) => console.error("Error al subir:", error));
 };
 
 // 3. INTERCEPTOR SEGURO
