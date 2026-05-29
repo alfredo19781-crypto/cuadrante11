@@ -401,7 +401,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { , useEffect } = React;
 
     const MESES_NOM = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
     const DIAS_SEM = ["LU", "MA", "MI", "JU", "VI", "SÁ", "DO"];
@@ -423,6 +423,7 @@
       const [year, setYear] = useState(new Date().getFullYear());
       const [showGear, setShowGear] = useState(false);
       const [edit, setEdit] = useState(null);
+      const [detallesBolsa, setDetallesBolsa] = useState(null);
       const [mostrarModalImportar, setMostrarModalImportar] = useState(false);
       const [textoAImportar, setTextoAImportar] = useState("");
       const [textoExportado, setTextoExportado] = useState("");
@@ -736,55 +737,39 @@
             </>
           )}
 
-          {menuActivo === "bolsas" && (
-            <div style={{animation: 'fadeIn 0.2s ease-out'}}>
-              <h2 style={{fontSize:'16px', marginBottom:'12px', fontWeight:'800'}}>Bolsas y Cómputos Globales ({year})</h2>
-              <div className="summary-grid">
-                <div className="summary-card">
-                  <span className="label">🏖️ Vacaciones</span>
-                  <span className="value">{calc.diasVacaciones} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>días</span></span>
-                  <span className="sublabel">Anuladas: {calc.diasProrrogaVac} d</span>
-                </div>
-                <div className="summary-card">
-                  <span className="label">🟡 Asuntos Propios</span>
-                  <span className="value">{calc.apDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
-                  <span className="sublabel">Prorrogados: {calc.apProrroga}</span>
-                </div>
-               <div className="summary-card">
-                  <span className="label">🟢 Excesos</span>
-                  <span className="value">
-                    {calc.excDisfrutados} 
-                    <span style={{fontSize: '12px', color: 'var(--text-muted)'}}> turnos</span>
-                  </span>
-                  <span className="sublabel">Prorrogados: {calc.excProrroga}</span>
-                </div>
-                <div className="summary-card highlight-purple">
-                  <span className="label" style={{color: '#A78BFA'}}>⏱️ Bolsa Movilizaciones</span>
-                  <span className="value" style={{color: '#C084FC'}}>
-                    {calc.bolsaMovTotal} 
-                    <span style={{fontSize: '12px', color: 'var(--text-muted)'}}> horas</span>
-                  </span>
-                  <span className="sublabel">Nuevas: {calc.totalMovilizaciones}h | Arrastre: {calc.arrastradas}h</span>
-                </div>
-              </div>
-
-              <div className="card" style={{background:'var(--surface)', borderColor:'var(--border)', color:'white'}}>
-                <h3 style={{fontSize:'14px', marginBottom:'8px'}}>Desglose de Movilizaciones</h3>
-                {(user.movilizaciones || []).filter(m => m && m.y === year).length === 0 ? (
-                  <p style={{fontSize:'12px', color:'var(--text-muted)'}}>No hay movilizaciones registradas este año.</p>
-                ) : (
-                  <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
-                    {(user.movilizaciones || []).filter(m => m && m.y === year).map(m => (
-                      <div key={m.id} style={{display:'flex', justifyContent:'space-between', fontSize:'12px', background:'var(--primary-light)', padding:'6px 10px', borderRadius:'6px'}}>
-                        <span>Día {m.dia} de {MESES_NOM[m.mes-1]}</span>
-                        <span style={{fontWeight:'bold', color:'#A78BFA'}}>{m.horaInicio} a {m.horaFin} ({calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h)</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+   {menuActivo === "bolsas" && (
+  <div style={{animation: 'fadeIn 0.2s ease-out'}}>
+    <h2 style={{fontSize:'16px', marginBottom:'12px', fontWeight:'800'}}>Resumen Anual ({year})</h2>
+    <div className="summary-grid">
+      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Vacaciones', data: user.periodos})}>
+        <span className="label">🏖️ Vacaciones</span>
+        <span className="value">{calc.diasVacaciones} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>días</span></span>
+      </div>
+      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Asuntos Propios', data: user.ap})}>
+        <span className="label">🟡 A. Propios</span>
+        <span className="value">{calc.apDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
+      </div>
+      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Excesos', data: user.excesos})}>
+        <span className="label">🟢 Excesos</span>
+        <span className="value">{calc.excDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
+      </div>
+      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Movilizaciones', data: user.movilizaciones})}>
+        <span className="label">⏱️ Movilizaciones</span>
+        <span className="value">{calc.bolsaMovTotal} <span style={{fontSize:'12px'}}>h</span></span>
+      </div>
+      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Guardias', data: user.guardias})}>
+        <span className="label">🛡️ Guardias</span>
+        <span className="value">{user.guardias?.filter(g=>g.y===year).length || 0}</span>
+      </div>
+      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Otros', data: user.otros})}>
+        <span className="label">💼 Otros</span>
+        <span className="value">{user.otros?.filter(o=>o.y===year).length || 0}</span>
+      </div>
+      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Permisos', data: user.permisos || []})}>
+      </div>
+    </div>
+  </div>
+)}
 
           {/* --- MENÚ INFERIOR --- */}
           <div className="bottom-menu">
@@ -1036,7 +1021,21 @@
               </div>
             </div>
           )}
-
+{detallesBolsa && (
+  <div className="modal" onClick={() => setDetallesBolsa(null)}>
+    <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <h3>Historial: {detallesBolsa.tipo}</h3>
+      <div style={{maxHeight:'300px', overflowY:'auto'}}>
+        {detallesBolsa.data?.filter(i => i.y === year).map((item, idx) => (
+          <div key={idx} style={{padding:'8px', borderBottom:'1px solid #E2E8F0', fontSize:'13px'}}>
+            {item.dia}/{item.mes} - {item.concepto || item.turno || item.tipo}
+          </div>
+        ))}
+      </div>
+      <button className="btn-primary" onClick={() => setDetallesBolsa(null)}>Cerrar</button>
+    </div>
+  </div>
+)}
           {/* --- MODAL RESTAURAR BACKUP --- */}
           {mostrarModalImportar && (
             <div className="modal" onClick={() => setMostrarModalImportar(false)}>
