@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   
-  <title>Cuadrante Alfredo Multianual V12.17</title>
+  <title>Cuadrante Alfredo Multianual V12.18</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -41,7 +41,6 @@
     .ap-M { top: 0; } .ap-T { top: calc(50% - 2px); } .ap-N { bottom: 0; }
     .hs-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; background: var(--hs-color); border-radius: 50%; z-index: 6; }
     
-    /* CORRECCIÓN PARA PC Y MÓVIL DEL BOTÓN ANUL */
     .toggle-btn { background: #E2E8F0; border: none; padding: 10px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; color: #475569; min-width: 60px; text-align: center; display: inline-block; }
     .toggle-btn.active { background: #F59E0B; color: white; }
     
@@ -98,7 +97,7 @@
       // Guardar localmente
       useEffect(() => { localStorage.setItem("cuad_year_actual", year); }, [year]);
       
-      // GUARDAR EN LA NUBE AUTOMÁTICAMENTE
+      // GUARDAR EN LA NUBE AUTOMÁTICAMENTE (CORREGIDO A SINTAXIS V8)
       useEffect(() => { 
         localStorage.setItem("user_alfredo_v122_config", JSON.stringify(user));
         db.ref('user_alfredo_v122_config').set(user).catch(e => console.log("Error nube:", e));
@@ -109,28 +108,35 @@
         db.ref('cuad_alfredo_v122_data').set(selected).catch(e => console.log("Error nube:", e));
       }, [selected]);
 
-      // ESCUCHAR CAMBIOS EN TIEMPO REAL
+      // ESCUCHAR CAMBIOS EN TIEMPO REAL (CORREGIDO A SINTAXIS V8)
       useEffect(() => {
         const configRef = db.ref('user_alfredo_v122_config');
-        configRef.on('value', (snapshot) => {
+        const manejarConfig = (snapshot) => {
           const val = snapshot.val();
           if (val && JSON.stringify(val) !== localStorage.getItem("user_alfredo_v122_config")) {
             setUser(val);
           }
-        });
+        };
+        configRef.on('value', manejarConfig);
+
         const dataRef = db.ref('cuad_alfredo_v122_data');
-        dataRef.on('value', (snapshot) => {
+        const manejarData = (snapshot) => {
           const val = snapshot.val();
           if (val && JSON.stringify(val) !== localStorage.getItem("cuad_alfredo_v122_data")) {
             setSelected(val);
           }
-        });
-        return () => { configRef.off(); dataRef.off(); };
+        };
+        dataRef.on('value', manejarData);
+
+        return () => { 
+          configRef.off('value', manejarConfig); 
+          dataRef.off('value', manejarData); 
+        };
       }, []);
 
       const manejarExportar = () => {
         try {
-          const datosCompletos = { versionBackup: "12.17", userConfig: user, selectedData: selected };
+          const datosCompletos = { versionBackup: "12.18", userConfig: user, selectedData: selected };
           const textoCifrado = btoa(unescape(encodeURIComponent(JSON.stringify(datosCompletos))));
           setTextoExportado(textoCifrado);
         } catch (error) {
@@ -354,7 +360,7 @@
             <button onClick={() => setShowGear(true)} style={{fontSize:'20px', background:'none', border:'none', color:'#475569'}}><i className="fa-solid fa-gear"></i></button>
           </div>
 
-          /* --- NAVEGACIÓN MES --- */
+          {/* --- NAVEGACIÓN MES COMENTARIO ARREGLADO --- */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px', background:'#fff', borderRadius:'12px', marginBottom:'12px', border:'1px solid #E2E8F0' }}>
             <button onClick={() => setMesVisible(prev => (prev > 0 ? prev - 1 : 11))} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background:'#F1F5F9', fontSize:'16px' }}>⬅️</button>
             <div style={{ textAlign:'center' }}>
@@ -411,7 +417,7 @@
                     <span>Turno: {item.turno}</span>
                   </div>
                 );
-              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay excesos consumidos in esta bolsa.</p>}
+              }) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay excesos consumidos en esta bolsa.</p>}
             </div>
           )}
 
@@ -548,7 +554,7 @@
                   <button className="btn-primary" onClick={aplicarPatron} style={{background:'#1E293B', marginTop:'8px'}}>GENERAR TURNO ANUAL</button>
                 </div>
 
-                {/* --- VACACIONES PERIODO CON BOTÓN ANUL ARREGLADO --- */}
+                {/* --- VACACIONES PERIODO --- */}
                 <div className="card">
                   <label>🏖️ VACACIONES PERIODO ({year})</label>
                   {(user.periodos || []).filter(p => p && p.y === year).map(p => (
@@ -577,7 +583,7 @@
                   <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null, dFin:null, mFin:null, esProrroga:false}]})}>+ ASIGNAR VACACIONES</button>
                 </div>
 
-                {/* --- EXCESOS CORREGIDOS CON BOTÓN ANUL VISIBLE EN PC --- */}
+                {/* --- EXCESOS --- */}
                 <div className="card" style={{borderTop:'3px solid #22C55E'}}>
                   <label>🟢 EXCESOS SOLICITADOS ({year})</label>
                   {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
@@ -607,7 +613,7 @@
                   <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ AÑADIR EXCESO</button>
                 </div>
 
-                {/* --- ASUNTOS PROPIOS CORREGIDOS CON BOTÓN ANUL VISIBLE EN PC --- */}
+                {/* --- ASUNTOS PROPIOS --- */}
                 <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
                   <label>🟡 ASUNTOS PROPIOS ({year})</label>
                   {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
