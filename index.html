@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="mobile-web-app-capable" content="yes" />
   
-  <title>Cuadrante Alfredo Multianual V12.18</title>
+  <title>Cuadrante Alfredo Multianual V12.20 - Módulos Nuevos</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -40,6 +40,11 @@
     .ap-line { position: absolute; left: 0; right: 0; height: 4px; background: var(--ap-color); z-index: 5; }
     .ap-M { top: 0; } .ap-T { top: calc(50% - 2px); } .ap-N { bottom: 0; }
     .hs-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; background: var(--hs-color); border-radius: 50%; z-index: 6; }
+    
+    /* Indicadores visuales de los nuevos módulos */
+    .guardia-dot { position: absolute; bottom: 3px; left: 3px; width: 5px; height: 5px; background: #F59E0B; border-radius: 50%; z-index: 6; }
+    .mov-dot { position: absolute; bottom: 3px; left: 10px; width: 5px; height: 5px; background: #8B5CF6; border-radius: 50%; z-index: 6; }
+    .otr-dot { position: absolute; bottom: 3px; left: 17px; width: 5px; height: 5px; background: #06B6D4; border-radius: 50%; z-index: 6; }
     
     .toggle-btn { background: #E2E8F0; border: none; padding: 10px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; color: #475569; min-width: 60px; text-align: center; display: inline-block; }
     .toggle-btn.active { background: #F59E0B; color: white; }
@@ -74,18 +79,26 @@
     function App() {
       const [year, setYear] = useState(() => parseInt(localStorage.getItem("cuad_year_actual") || "2026"));
       const [selected, setSelected] = useState(() => JSON.parse(localStorage.getItem("cuad_alfredo_v122_data") || "{}"));
+      
       const [user, setUser] = useState(() => {
+        const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[]};
         try {
           const saved = localStorage.getItem("user_alfredo_v122_config");
-          return saved ? JSON.parse(saved) : {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[]};
+          return saved ? { ...plantillaBase, ...JSON.parse(saved) } : plantillaBase;
         } catch(e) {
-          return {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[]};
+          return plantillaBase;
         }
       });
       
       const [showGear, setShowGear] = useState(false);
       const [verDetalleAp, setVerDetalleAp] = useState(false);
       const [verDetalleExc, setVerDetalleExc] = useState(false);
+      
+      // Nuevos estados para colapsables de detalles rápidos
+      const [verDetalleGuardias, setVerDetalleGuardias] = useState(false);
+      const [verDetalleMov, setVerDetalleMov] = useState(false);
+      const [verDetalleOtros, setVerDetalleOtros] = useState(false);
+
       const [edit, setEdit] = useState(null);
       const [tempTipo12h, setTempTipo12h] = useState("D");
       const [mesVisible, setMesVisible] = useState(new Date().getMonth());
@@ -97,24 +110,25 @@
       // Guardar localmente
       useEffect(() => { localStorage.setItem("cuad_year_actual", year); }, [year]);
       
-      // GUARDAR EN LA NUBE AUTOMÁTICAMENTE (CORREGIDO A SINTAXIS V8)
+      // GUARDAR EN LA NUBE AUTOMÁTICAMENTE
       useEffect(() => { 
         localStorage.setItem("user_alfredo_v122_config", JSON.stringify(user));
-        db.ref('user_alfredo_v122_config').set(user).catch(e => console.log("Error nube:", e));
+        db.ref('user_alfredo_v122_config').set(user).catch(e => console.log("Error nube Config:", e));
       }, [user]);
 
       useEffect(() => { 
         localStorage.setItem("cuad_alfredo_v122_data", JSON.stringify(selected));
-        db.ref('cuad_alfredo_v122_data').set(selected).catch(e => console.log("Error nube:", e));
+        db.ref('cuad_alfredo_v122_data').set(selected).catch(e => console.log("Error nube Data:", e));
       }, [selected]);
 
-      // ESCUCHAR CAMBIOS EN TIEMPO REAL (CORREGIDO A SINTAXIS V8)
+      // ESCUCHAR CAMBIOS EN TIEMPO REAL
       useEffect(() => {
         const configRef = db.ref('user_alfredo_v122_config');
         const manejarConfig = (snapshot) => {
           const val = snapshot.val();
           if (val && JSON.stringify(val) !== localStorage.getItem("user_alfredo_v122_config")) {
-            setUser(val);
+            const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[]};
+            setUser({ ...plantillaBase, ...val });
           }
         };
         configRef.on('value', manejarConfig);
@@ -136,7 +150,7 @@
 
       const manejarExportar = () => {
         try {
-          const datosCompletos = { versionBackup: "12.18", userConfig: user, selectedData: selected };
+          const datosCompletos = { versionBackup: "12.20", userConfig: user, selectedData: selected };
           const textoCifrado = btoa(unescape(encodeURIComponent(JSON.stringify(datosCompletos))));
           setTextoExportado(textoCifrado);
         } catch (error) {
@@ -150,7 +164,8 @@
           const textoDescifrado = decodeURIComponent(escape(atob(textoAImportar.trim())));
           const importado = JSON.parse(textoDescifrado);
           if (importado.userConfig && importado.selectedData) {
-            setUser(importado.userConfig);
+            const plantillaBase = {nombre:"Alfredo", ingreso:2008, periodos:[], ap:[], hs:[], excesos:[], per:[], guardias:[], movilizaciones:[], otros:[]};
+            setUser({ ...plantillaBase, ...importado.userConfig });
             setSelected(importado.selectedData);
             alert("🚀 ¡Copia de seguridad restaurada con éxito!");
             setMostrarModalImportar(false);
@@ -303,6 +318,12 @@
           newS[edit.dk] = { jornada: 12, tipo: "12h-D" };
         } else if (tipoModal === "12h-N") {
           newS[edit.dk] = { jornada: 12, tipo: "12h-N" };
+        } else if (tipoModal === "G-24h") {
+          newS[edit.dk] = { jornada: 24, tipo: "G-24h" };
+        } else if (tipoModal === "G-12h") {
+          newS[edit.dk] = { jornada: 12, tipo: "G-12h" };
+        } else if (tipoModal === "MOV") {
+          newS[edit.dk] = { jornada: 8, tipo: "MOV" };
         } else {
           delete newS[edit.dk];
         }
@@ -360,7 +381,7 @@
             <button onClick={() => setShowGear(true)} style={{fontSize:'20px', background:'none', border:'none', color:'#475569'}}><i className="fa-solid fa-gear"></i></button>
           </div>
 
-          {/* --- NAVEGACIÓN MES COMENTARIO ARREGLADO --- */}
+          {/* --- NAVEGACIÓN MES --- */}
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px', background:'#fff', borderRadius:'12px', marginBottom:'12px', border:'1px solid #E2E8F0' }}>
             <button onClick={() => setMesVisible(prev => (prev > 0 ? prev - 1 : 11))} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background:'#F1F5F9', fontSize:'16px' }}>⬅️</button>
             <div style={{ textAlign:'center' }}>
@@ -369,23 +390,23 @@
             <button onClick={() => setMesVisible(prev => (prev < 11 ? prev + 1 : 0))} style={{ padding:'8px 14px', borderRadius:'8px', border:'none', background:'#F1F5F9', fontSize:'16px' }}>➡️</button>
           </div>
 
-          {/* --- TARJETAS INDICADORAS --- */}
-          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'6px', marginBottom:'12px'}}>
+          {/* --- TARJETAS INDICADORAS BASE --- */}
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'6px', marginBottom:'6px'}}>
             <div className="card" style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid var(--primary)'}}>
               <label style={{fontSize:'8px'}}>JORNADAS TOTAL</label>
-              <b style={{fontSize:'16px'}}>{stats.real.toFixed(1)}</b>
+              <b style={{fontSize:'15px'}}>{stats.real.toFixed(1)}</b>
             </div>
             <div className="card" style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid #64748B'}}>
               <label style={{fontSize:'8px'}}>OBJETIVO</label>
-              <b style={{fontSize:'16px'}}>{stats.obj}</b>
+              <b style={{fontSize:'15px'}}>{stats.obj}</b>
             </div>
-            <div className="card" onClick={() => { setVerDetalleAp(false); setVerDetalleExc(!verDetalleExc); }} style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid #22C55E', cursor:'pointer'}}>
+            <div className="card" onClick={() => { setVerDetalleAp(false); setVerDetalleGuardias(false); setVerDetalleMov(false); setVerDetalleOtros(false); setVerDetalleExc(!verDetalleExc); }} style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid #22C55E', cursor:'pointer'}}>
               <label style={{fontSize:'8px'}}>EXCESOS</label>
-              <b style={{fontSize:'16px'}}>{stats.consumidos} / {stats.acumulados}</b>
+              <b style={{fontSize:'15px'}}>{stats.consumidos} / {stats.acumulados}</b>
             </div>
-            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(!verDetalleAp); }} style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid var(--ap-color)', cursor:'pointer'}}>
+            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleGuardias(false); setVerDetalleMov(false); setVerDetalleOtros(false); setVerDetalleAp(!verDetalleAp); }} style={{margin:0, textAlign:'center', padding:'8px', borderTop:'4px solid var(--ap-color)', cursor:'pointer'}}>
               <label style={{fontSize:'8px'}}>A. PROPIOS</label>
-              <b style={{fontSize:'16px'}}>
+              <b style={{fontSize:'15px'}}>
                 {stats.apConsumidos} / {(() => {
                   const ant = year - (user.ingreso || 2008);
                   let base = 6;
@@ -394,6 +415,22 @@
                   return base;
                 })()}
               </b>
+            </div>
+          </div>
+
+          {/* --- NUEVA FILA DE TARJETAS INDICADORAS (MÓDULOS AGREGADOS) --- */}
+          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'6px', marginBottom:'12px'}}>
+            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleMov(false); setVerDetalleOtros(false); setVerDetalleGuardias(!verDetalleGuardias); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #F59E0B', cursor:'pointer', background:'white'}}>
+              <label style={{fontSize:'8px', color:'#D97706'}}>🛡️ GUARDIAS</label>
+              <b style={{fontSize:'12px'}}>{(user.guardias || []).filter(g => g && g.y === year).length} ({(user.guardias || []).filter(g => g && g.y === year).reduce((s,c)=>s+(c.horas||0),0)}h)</b>
+            </div>
+            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleGuardias(false); setVerDetalleOtros(false); setVerDetalleMov(!verDetalleMov); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #8B5CF6', cursor:'pointer', background:'white'}}>
+              <label style={{fontSize:'8px', color:'#7C3AED'}}>🚒 MOVILIZAC.</label>
+              <b style={{fontSize:'12px'}}>{(user.movilizaciones || []).filter(m => m && m.y === year).length}</b>
+            </div>
+            <div className="card" onClick={() => { setVerDetalleExc(false); setVerDetalleAp(false); setVerDetalleGuardias(false); setVerDetalleMov(false); setVerDetalleOtros(!verDetalleOtros); }} style={{margin:0, textAlign:'center', padding:'6px', borderTop:'3px solid #06B6D4', cursor:'pointer', background:'white'}}>
+              <label style={{fontSize:'8px', color:'#0891B2'}}>💼 OTROS</label>
+              <b style={{fontSize:'12px'}}>{(user.otros || []).filter(o => o && o.y === year).length}</b>
             </div>
           </div>
 
@@ -445,14 +482,71 @@
             </div>
           )}
 
+          {/* --- DESGLOSE GUARDIAS DESPLEGABLE --- */}
+          {verDetalleGuardias && (
+            <div className="card" style={{borderColor:'#F59E0B', background:'#F8FAFC'}}>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
+                <h4 style={{fontSize:'12px', color:'#D97706'}}>Historial Anual de Guardias {year}</h4>
+                <button onClick={() => setVerDetalleGuardias(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
+              </div>
+              {(user.guardias || []).filter(g => g && g.y === year).length ? (user.guardias || []).filter(g => g && g.y === year).map((item, idx) => (
+                <div key={idx} style={{display:'flex', justifyContent:'space-between', padding:'6px', background:'#FEF3C7', borderRadius:'6px', marginBottom:'4px', fontSize:'12px', borderLeft:'4px solid #F59E0B'}}>
+                  <b>Día {item.dia} de {MESES_NOM[item.mes-1]}</b>
+                  <span>{item.tipo} ({item.horas}h)</span>
+                </div>
+              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay guardias anotadas este año.</p>}
+            </div>
+          )}
+
+          {/* --- DESGLOSE MOVILIZACIONES DESPLEGABLE --- */}
+          {verDetalleMov && (
+            <div className="card" style={{borderColor:'#8B5CF6', background:'#F8FAFC'}}>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
+                <h4 style={{fontSize:'12px', color:'#7C3AED'}}>Historial Anual de Movilizaciones {year}</h4>
+                <button onClick={() => setVerDetalleMov(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
+              </div>
+              {(user.movilizaciones || []).filter(m => m && m.y === year).length ? (user.movilizaciones || []).filter(m => m && m.y === year).map((item, idx) => (
+                <div key={idx} style={{display:'flex', display:'block', padding:'6px', background:'#E0E7FF', borderRadius:'6px', marginBottom:'4px', fontSize:'12px', borderLeft:'4px solid #8B5CF6'}}>
+                  <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]}</b>
+                    <span><b>{item.horas} Horas</b></span>
+                  </div>
+                  {item.detalle && <div style={{fontSize:'11px', color:'#475569', marginTop:'2px'}}>Destino: {item.detalle}</div>}
+                </div>
+              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay movilizaciones anotadas este año.</p>}
+            </div>
+          )}
+
+          {/* --- DESGLOSE OTROS DESPLEGABLE --- */}
+          {verDetalleOtros && (
+            <div className="card" style={{borderColor:'#06B6D4', background:'#F8FAFC'}}>
+              <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px'}}>
+                <h4 style={{fontSize:'12px', color:'#0891B2'}}>Otros Conceptos / Cursos / Comisiones {year}</h4>
+                <button onClick={() => setVerDetalleOtros(false)} style={{border:'none', background:'var(--danger)', color:'white', padding:'2px 6px', borderRadius:'4px', fontSize:'10px'}}>Cerrar</button>
+              </div>
+              {(user.otros || []).filter(o => o && o.y === year).length ? (user.otros || []).filter(o => o && o.y === year).map((item, idx) => (
+                <div key={idx} style={{display:'block', padding:'6px', background:'#E0F2FE', borderRadius:'6px', marginBottom:'4px', fontSize:'12px', borderLeft:'4px solid #06B6D4'}}>
+                  <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <b>Día {item.dia} de {MESES_NOM[item.mes-1]}</b>
+                    <span><b>{item.horas}h</b></span>
+                  </div>
+                  {item.concepto && <div style={{fontSize:'11px', color:'#475569', marginTop:'2px'}}>Motivo: {item.concepto}</div>}
+                </div>
+              )) : <p style={{fontSize:'11px', color:'#64748B'}}>No hay otros reconocimientos anotados este año.</p>}
+            </div>
+          )}
+
           {/* --- CALENDARIO --- */}
           <div className="card">
-            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'6px'}}>
+            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'6px', flexWrap:'wrap', gap:'4px'}}>
               <span style={{fontSize:'12px', fontWeight:'bold', color:'var(--primary)'}}>{MESES_NOM[mesVisible].toUpperCase()} {year}</span>
-              <span style={{fontSize:'10px'}}>
+              <div style={{fontSize:'9px', display:'flex', gap:'5px', flexWrap:'wrap', justifyContent:'flex-end'}}>
                 <span style={{color:'var(--hs-color)', fontWeight:'bold'}}>{(user.hs || []).filter(h => h && h.y === year && h.mes === (mesVisible+1)).reduce((s,c)=>s+c.horas, 0)}h HS</span>
-                <span style={{color:'#10B981', fontWeight:'bold', marginLeft:'6px' }}>{(user.per || []).filter(p => p && p.y === year && p.mes === (mesVisible+1)).reduce((s,c)=>s+c.horas, 0)}h PER</span>
-              </span>
+                <span style={{color:'#10B981', fontWeight:'bold'}}>{(user.per || []).filter(p => p && p.y === year && p.mes === (mesVisible+1)).reduce((s,c)=>s+c.horas, 0)}h PER</span>
+                <span style={{color:'#F59E0B', fontWeight:'bold'}}>{(user.guardias || []).filter(g => g && g.y === year && g.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0), 0)}h GUARD</span>
+                <span style={{color:'#8B5CF6', fontWeight:'bold'}}>{(user.movilizaciones || []).filter(m => m && m.y === year && m.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0), 0)}h MOV</span>
+                <span style={{color:'#06B6D4', fontWeight:'bold'}}>{(user.otros || []).filter(o => o && o.y === year && o.mes === (mesVisible+1)).reduce((s,c)=>s+(c.horas||0), 0)}h OTR</span>
+              </div>
             </div>
 
             <div className="grid-cal">
@@ -467,11 +561,18 @@
                 const excs = (user.excesos || []).filter(e => e && e.y === year && e.mes === (mesVisible+1) && e.dia === d && e.turno && e.turno !== "-");
                 const hasHS = (user.hs || []).some(h => h && h.y === year && h.mes === (mesVisible+1) && h.dia === d);
                 
+                // Consultas de puntos para los nuevos módulos
+                const hasGuardia = (user.guardias || []).some(g => g && g.y === year && g.mes === (mesVisible+1) && g.dia === d);
+                const hasMovilizacion = (user.movilizaciones || []).some(m => m && m.y === year && m.mes === (mesVisible+1) && m.dia === d);
+                const hasOtros = (user.otros || []).some(o => o && o.y === year && o.mes === (mesVisible+1) && o.dia === d);
+                
                 const data = selected[dk] || {};
                 const is12h = data.tipo && data.tipo.startsWith('12h');
                 
                 let bg = "white";
                 if (pVacas) bg = "#FEF9C3"; 
+                else if (data.tipo === 'G-24h' || data.tipo === 'G-12h') bg = "#FEF3C7"; // Tinte ámbar guardias
+                else if (data.tipo === 'MOV') bg = "#E0E7FF"; // Tinte índigo movilizaciones
                 else if (is12h) bg = data.tipo === '12h-N' ? "#C2410C" : "#FB923C";
                 else if (data.jornada) bg = "#FEE2E2";
                 else if (data.descanso) bg = "#DCFCE7";
@@ -482,7 +583,25 @@
                     {aps.map((a,i) => <div key={i} className={`ap-line ap-${a.turno}`} />)}
                     {excs.map((e,i) => <div key={i} className={`ap-line ap-${e.turno}`} style={{background:'#22C55E'}} />)}
                     {hasHS && <div className="hs-dot" />}
-                    {data.jornada > 0 && !pVacas && <span style={{fontSize:'9px', color: is12h ? 'white' : 'red', fontWeight:'bold', zIndex:10}}>{is12h ? data.tipo.split('-')[1] : data.jornada + 'h'}</span>}
+                    
+                    {/* Nuevos círculos identificadores */}
+                    {hasGuardia && <div className="guardia-dot" />}
+                    {hasMovilizacion && <div className="mov-dot" />}
+                    {hasOtros && <div className="otr-dot" />}
+                    
+                    {data.jornada > 0 && !pVacas && (
+                      <span style={{
+                        fontSize:'9px', 
+                        color: (is12h || data.tipo?.startsWith('G-')) ? 'white' : 'red', 
+                        background: data.tipo?.startsWith('G-') ? '#D97706' : 'transparent',
+                        padding: data.tipo?.startsWith('G-') ? '1px 3px' : '0',
+                        borderRadius: '3px',
+                        fontWeight:'bold', 
+                        zIndex:10
+                      }}>
+                        {data.tipo === 'G-24h' ? 'G24' : data.tipo === 'G-12h' ? 'G12' : data.tipo === 'MOV' ? 'MOV' : is12h ? data.tipo.split('-')[1] : data.jornada + 'h'}
+                      </span>
+                    )}
                   </button>
                 )
               })}
@@ -502,6 +621,9 @@
                   <option value="24h">Jornada 24h</option>
                   <option value="12h-D">Jornada 12h - Día (D)</option>
                   <option value="12h-N">Jornada 12h - Noche (N)</option>
+                  <option value="G-24h">🛡️ Guardia 24h</option>
+                  <option value="G-12h">🛡️ Guardia 12h</option>
+                  <option value="MOV">🚒 Movilización</option>
                 </select>
                 <button className="btn-primary" onClick={guardarCeldaRapida}>GUARDAR</button>
                 <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setEdit(null)}>CANCELAR</button>
@@ -643,6 +765,66 @@
                   <button className="btn-primary" style={{background:'var(--ap-color)', color:'var(--dark)'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ AÑADIR AP</button>
                 </div>
 
+                {/* --- NUEVA SECCIÓN: GESTOR DE GUARDIAS --- */}
+                <div className="card" style={{borderTop:'3px solid #F59E0B'}}>
+                  <label>🛡️ CONFIGURAR GUARDIAS DETALLADAS ({year})</label>
+                  {(user.guardias || []).filter(g => g && g.y === year).map(g => (
+                    <div key={g.id} className="row-config">
+                      <div className="inputs-group">
+                        <input type="number" placeholder="Día" value={g.dia || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
+                        <select value={g.mes || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+                        </select>
+                        <select value={g.tipo || "Localizada"} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, tipo:e.target.value}:x)})} style={{width:'100px'}}>
+                          <option value="Localizada">Localizada</option>
+                          <option value="Presencial">Presencial</option>
+                        </select>
+                        <input type="number" placeholder="Horas" value={g.horas || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
+                      </div>
+                      <button className="btn-del" onClick={() => setUser({...user, guardias: user.guardias.filter(x => x.id !== g.id)})}>🗑️ Borrar Guardia</button>
+                    </div>
+                  ))}
+                  <button className="btn-primary" style={{background:'#F59E0B', color:'white'}} onClick={() => setUser({...user, guardias: [...(user.guardias || []), {id:Date.now(), y:year, dia:null, mes:null, tipo:"Localizada", horas:24}]})}>+ AÑADIR REGISTRO GUARDIA</button>
+                </div>
+
+                {/* --- NUEVA SECCIÓN: GESTOR DE MOVILIZACIONES --- */}
+                <div className="card" style={{borderTop:'3px solid #8B5CF6'}}>
+                  <label>🚒 CONFIGURAR MOVILIZACIONES / DESPLIEGUES ({year})</label>
+                  {(user.movilizaciones || []).filter(m => m && m.y === year).map(m => (
+                    <div key={m.id} className="row-config">
+                      <div className="inputs-group">
+                        <input type="number" placeholder="Día" value={m.dia || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
+                        <select value={m.mes || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+                        </select>
+                        <input type="text" placeholder="Destino / Notas" value={m.detalle || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, detalle:e.target.value}:x)})} style={{flex:'2'}} />
+                        <input type="number" placeholder="Horas" value={m.horas || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
+                      </div>
+                      <button className="btn-del" onClick={() => setUser({...user, movilizaciones: user.movilizaciones.filter(x => x.id !== m.id)})}>🗑️ Borrar Movilización</button>
+                    </div>
+                  ))}
+                  <button className="btn-primary" style={{background:'#8B5CF6', color:'white'}} onClick={() => setUser({...user, movilizaciones: [...(user.movilizaciones || []), {id:Date.now(), y:year, dia:null, mes:null, detalle:"", horas:8}]})}>+ AÑADIR REGISTRO MOVILIZACIÓN</button>
+                </div>
+
+                {/* --- NUEVA SECCIÓN: GESTOR DE OTROS --- */}
+                <div className="card" style={{borderTop:'3px solid #06B6D4'}}>
+                  <label>💼 OTROS RECONOCIMIENTOS / CURSOS / COMISIONES ({year})</label>
+                  {(user.otros || []).filter(o => o && o.y === year).map(o => (
+                    <div key={o.id} className="row-config">
+                      <div className="inputs-group">
+                        <input type="number" placeholder="Día" value={o.dia || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
+                        <select value={o.mes || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+                        </select>
+                        <input type="text" placeholder="Concepto" value={o.concepto || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
+                        <input type="number" placeholder="Horas" value={o.horas || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
+                      </div>
+                      <button className="btn-del" onClick={() => setUser({...user, otros: user.otros.filter(x => x.id !== o.id)})}>🗑️ Borrar Registro</button>
+                    </div>
+                  ))}
+                  <button className="btn-primary" style={{background:'#06B6D4', color:'white'}} onClick={() => setUser({...user, otros: [...(user.otros || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]})}>+ AÑADIR OTRO RECONOCIMIENTO</button>
+                </div>
+
                 <button className="btn-danger" onClick={() => setShowGear(false)} style={{marginTop:'10px'}}>CERRAR PANEL</button>
               </div>
             </div>
@@ -681,7 +863,7 @@
     const root = ReactDOM.createRoot(container);
     root.render(<App />);
 
-    // --- SCRIPT DE INMERSIÓN DE PANTALLA COMPLETA AL TOCAR (MODO APK RE-ACTIVADO) ---
+    // --- SCRIPT DE INMERSIÓN DE PANTALLA COMPLETA AL TOCAR ---
     window.addEventListener("click", function() {
       const doc = window.document;
       const docEl = doc.documentElement;
