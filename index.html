@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  
   <title>Cuadrante Alfredo Multianual V12.15</title>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -496,7 +501,7 @@
             </div>
           )}
 
-          {/* --- MODAL AJUSTES COMPLETOS --- */}
+          {/* --- MODAL AJUSTES COMPLETOS (RECONSTRUIDO AL 100%) --- */}
           {showGear && (
             <div className="modal" onClick={() => setShowGear(false)}>
               <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -540,9 +545,103 @@
                   </div>
                   <button className="btn-primary" onClick={aplicarPatron} style={{background:'#1E293B', marginTop:'8px'}}>GENERAR TURNO ANUAL</button>
                 </div>
+
+                {/* --- VACACIONES PERIODO RECONSTRUIDO --- */}
+                <div className="card">
+                  <label>🏖️ VACACIONES PERIODO ({year})</label>
+                  {(user.periodos || []).filter(p => p && p.y === year).map(p => (
+                    <div key={p.id} className="row-config">
+                      <div className="inputs-group">
+                        <select value={p.mIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mIni:parseInt(e.target.value)}:x)})}>
+                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m.slice(0,3)}</option>)}
+                        </select>
+                        <select value={p.dIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dIni:parseInt(e.target.value)}:x)})}>
+                          <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
+                        </select>
+                        <span>al</span>
+                        <select value={p.mFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mFin:parseInt(e.target.value)}:x)})}>
+                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m.slice(0,3)}</option>)}
+                        </select>
+                        <select value={p.dFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dFin:parseInt(e.target.value)}:x)})}>
+                          <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </div>
+                      <button className="btn-del" onClick={() => setUser({...user, periodos: user.periodos.filter(x => x.id !== p.id)})}>🗑️ Borrar Periodo</button>
+                    </div>
+                  ))}
+                  <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null, dFin:null, mFin:null, esProrroga:false}]})}>+ ASIGNAR VACACIONES</button>
+                </div>
+
+                {/* --- EXCESOS RECONSTRUIDO --- */}
+                <div className="card" style={{borderTop:'3px solid #22C55E'}}>
+                  <label>🟢 EXCESOS SOLICITADOS ({year})</label>
+                  {(user.excesos || []).filter(e => e && e.y === year).map(exc => (
+                    <div key={exc.id} className="row-config">
+                      <div className="inputs-group">
+                        <input type="number" placeholder="Día" value={exc.dia || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'60px'}} />
+                        <select value={exc.mes || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, mes:parseInt(e.target.value)}:x)})}>
+                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+                        </select>
+                        <select value={exc.turno || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, turno:e.target.value}:x)})}>
+                          <option value="-">-</option><option value="M">M</option><option value="T">T</option><option value="N">N</option>
+                        </select>
+                      </div>
+                      <button className="btn-del" onClick={() => setUser({...user, excesos: user.excesos.filter(x => x.id !== exc.id)})}>🗑️ Borrar Exceso</button>
+                    </div>
+                  ))}
+                  <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ AÑADIR EXCESO</button>
+                </div>
+
+                {/* --- ASUNTOS PROPIOS RECONSTRUIDO --- */}
+                <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
+                  <label>🟡 ASUNTOS PROPIOS ({year})</label>
+                  {(user.ap || []).filter(a => a && a.y === year).map(apItem => (
+                    <div key={apItem.id} className="row-config">
+                      <div className="inputs-group">
+                        <input type="number" placeholder="Día" value={apItem.dia || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'60px'}} />
+                        <select value={apItem.mes || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, mes:parseInt(e.target.value)}:x)})}>
+                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+                        </select>
+                        <select value={apItem.turno || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, turno:e.target.value}:x)})}>
+                          <option value="-">-</option><option value="M">M</option><option value="T">T</option><option value="N">N</option>
+                        </select>
+                      </div>
+                      <button className="btn-del" onClick={() => setUser({...user, ap: user.ap.filter(x => x.id !== apItem.id)})}>🗑️ Borrar AP</button>
+                    </div>
+                  ))}
+                  <button className="btn-primary" style={{background:'var(--ap-color)', color:'var(--dark)'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ AÑADIR AP</button>
+                </div>
+
+                <button className="btn-danger" onClick={() => setShowGear(false)} style={{marginTop:'10px'}}>CERRAR PANEL</button>
               </div>
             </div>
           )}
+
+          {/* --- MODAL RESTAURAR COPIA INTERNA --- */}
+          {mostrarModalImportar && (
+            <div className="modal" onClick={() => setMostrarModalImportar(false)}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <h3>Restaurar Copia de Seguridad</h3>
+                <textarea rows="6" placeholder="Pega aquí el código largo cifrado..." value={textoAImportar} onChange={e => setTextoAImportar(e.target.value)} style={{marginTop:'10px', fontFamily:'monospace', fontSize:'11px'}}></textarea>
+                <button className="btn-primary" onClick={manejarImportar}>RESTAURAR AHORA</button>
+                <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(false)}>CANCELAR</button>
+              </div>
+            </div>
+          )}
+
+          {/* --- SUBMODAL DE CÓDIGO GENERADO --- */}
+          {textoExportado && (
+            <div className="modal" onClick={() => setTextoExportado("")}>
+              <div className="modal-content" onClick={e => e.stopPropagation()}>
+                <h3>Tu Código de Seguridad</h3>
+                <p style={{fontSize:'12px', color:'#64748B', margin:'5px 0'}}>Copia todo este texto y guárdalo en WhatsApp o un bloc de notas:</p>
+                <textarea readOnly rows="6" value={textoExportado} onClick={e => e.target.select()} style={{background:'#F1F5F9', fontFamily:'monospace', fontSize:'11px'}}></textarea>
+                <button className="btn-primary" onClick={() => { navigator.clipboard.writeText(textoExportado); alert("¡Copiado al portapapeles!"); }}>COPIAR TEXTO</button>
+                <button className="btn-danger" onClick={() => setTextoExportado("")}>CERRAR</button>
+              </div>
+            </div>
+          )}
+
         </div>
       );
     }
@@ -550,6 +649,19 @@
     const container = document.getElementById('root');
     const root = ReactDOM.createRoot(container);
     root.render(<App />);
+
+    // --- SCRIPT DE INMERSIÓN DE PANTALLA COMPLETA AL TOCAR (MODO APK RE-ACTIVADO) ---
+    window.addEventListener("click", function() {
+      const doc = window.document;
+      const docEl = doc.documentElement;
+      const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+      
+      if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        requestFullscreen.call(docEl).catch(err => {
+          console.log("Pantalla completa no permitida en este toque.");
+        });
+      }
+    });
   </script>
 </body>
 </html>
