@@ -459,29 +459,22 @@
         setTextoExportado(str);
       };
 
-      const manejarImportar = () => {
-      try {
+      const manejadorImportar = () => {
+    try {
       const dec = decodeURIComponent(escape(atob(textoAImportar.trim())));
-      const backup = JSON.parse(dec);
-      
-      if (backup) {
-        // Aseguramos que la estructura básica exista antes de setear el estado
-        const usuarioFusionado = {
-          ...backup,
-          permisos: backup.permisos || []
-        };
-        
-        setUser(usuarioFusionado);
-        localStorage.setItem('userData', JSON.stringify(usuarioFusionado));
+      const obj = JSON.parse(dec);
+      if (obj && typeof obj === 'object') {
+        setUser(obj);
         setMostrarModalImportar(false);
         setTextoAImportar("");
-        alert("¡Sincronización realizada con éxito!");
-        window.location.reload(); 
+        alert("¡Copia de seguridad restaurada con éxito!");
+      } else {
+        alert("El código no tiene un formato válido.");
       }
-    } catch (e) {
-      alert("Error en el formato del código.");
-      console.error(e);
+    } catch(e) {
+      alert("Error al procesar el código de restauración.");
     }
+  };
 
       const cambiarAnio = (dir) => setYear(prev => prev + dir);
 
