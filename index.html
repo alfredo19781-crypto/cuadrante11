@@ -11,7 +11,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-  import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+  import * as database from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
@@ -24,11 +24,9 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  window.db = getDatabase(app); // Hacemos que la base de datos sea accesible globalmente
-  // Exportamos las funciones necesarias para que React las use
-  window.FirebaseDatabase = { ref, set, onValue };
+  window.db = database.getDatabase(app);
+  window.fbDatabase = database; // <--- AQUÍ ESTÁ LA CLAVE: pasamos toda la librería
 </script>
-
   <style>
     :root {
       --primary: #1E293B;
@@ -469,16 +467,35 @@
         };
       });
 
-    useEffect(() => {
-    // 1. Guardamos en el navegador (lo que ya tenías)
+ // ESTE ES EL EFECTO QUE HACE TODO: CARGA AL INICIAR Y GUARDA AL CAMBIAR
+  useEffect(() => {
+    // 1. Guardar localmente (siempre funciona)
     localStorage.setItem("cuadrante_user_v3", JSON.stringify(user));
     
-    // 2. NUEVO: Guardamos en Firebase (la sincronización)
-    if (window.db) {
-      const { ref, set } = window.FirebaseDatabase;
+    // 2. Sincronizar con Firebase (si existe la conexión)
+    if (window.db && window.fbDatabase) {
+      const { ref, set } = window.fbDatabase;
       set(ref(window.db, 'userData'), user);
     }
   }, [user]);
+
+  // ESTE ES EL "ESCUCHADOR": CARGA DATOS DE LA NUBE AL ABRIR LA APP
+  useEffect(() => {
+    if (window.db && window.fbDatabase) {
+      try {
+        const { ref, onValue } = window.fbDatabase;
+        const userRef = ref(window.db, 'userData');
+        onValue(userRef, (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            setUser(data);
+          }
+        });
+      } catch (e) {
+        console.error("Error al conectar con la nube:", e);
+      }
+    }
+  }, []);
       // --- COPIAS DE SEGURIDAD ---
       const manejarExportar = () => {
         const str = btoa(unescape(encodeURIComponent(JSON.stringify(user))));
