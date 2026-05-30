@@ -460,21 +460,35 @@
       };
 
       const manejarImportar = () => {
-        try {
-          const dec = decodeURIComponent(escape(atob(textoAImportar.trim())));
-          const obj = JSON.parse(dec);
-          if (obj && typeof obj === 'object') {
-            setUser(obj);
-            setMostrarModalImportar(false);
-            setTextoAImportar("");
-            alert("¡Copia de seguridad restaurada con éxito!");
-          } else {
-            alert("El código no tiene un formato válido.");
-          }
-        } catch(e) {
-          alert("Error al procesar el código de restauración.");
-        }
+      try {
+      const dec = decodeURIComponent(escape(atob(textoAImportar.trim())));
+      const backup = JSON.parse(dec);
+      
+      // Fusionamos el backup con la estructura necesaria para evitar fallos
+      const usuarioFusionado = {
+        nombre: backup.nombre || "Usuario",
+        ingreso: backup.ingreso || 2024,
+        cuadrante: backup.cuadrante || {},
+        periodos: backup.periodos || [],
+        excesos: backup.excesos || [],
+        ap: backup.ap || [],
+        guardias: backup.guardias || [],
+        movilizaciones: backup.movilizaciones || [],
+        mov_arrastradas: backup.mov_arrastradas || {},
+        otros: backup.otros || [],
+        permisos: backup.permisos || [] // Campo nuevo para evitar errores
       };
+
+      setUser(usuarioFusionado);
+      localStorage.setItem('userData', JSON.stringify(usuarioFusionado));
+      setMostrarModalImportar(false);
+      setTextoAImportar("");
+      alert("¡Sincronización realizada con éxito!");
+      window.location.reload(); // Vital para que la app se resetee con los nuevos datos
+    } catch (e) {
+      alert("El código de restauración no es compatible.");
+      console.error("Error al restaurar:", e);
+    }
 
       const cambiarAnio = (dir) => setYear(prev => prev + dir);
 
