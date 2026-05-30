@@ -25,6 +25,8 @@
 
   const app = initializeApp(firebaseConfig);
   window.db = getDatabase(app); // Hacemos que la base de datos sea accesible globalmente
+  // Exportamos las funciones necesarias para que React las use
+  window.FirebaseDatabase = { ref, set, onValue };
 </script>
 
   <style>
@@ -467,10 +469,16 @@
         };
       });
 
-      useEffect(() => {
-        localStorage.setItem("cuadrante_user_v3", JSON.stringify(user));
-      }, [user]);
-
+    useEffect(() => {
+    // 1. Guardamos en el navegador (lo que ya tenías)
+    localStorage.setItem("cuadrante_user_v3", JSON.stringify(user));
+    
+    // 2. NUEVO: Guardamos en Firebase (la sincronización)
+    if (window.db) {
+      const { ref, set } = window.FirebaseDatabase;
+      set(ref(window.db, 'userData'), user);
+    }
+  }, [user]);
       // --- COPIAS DE SEGURIDAD ---
       const manejarExportar = () => {
         const str = btoa(unescape(encodeURIComponent(JSON.stringify(user))));
