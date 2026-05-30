@@ -5,9 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Cuadrante de Turnos Avanzado</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+ <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAAK6BpzpSBpTfrPCDi_SvHUbPt0qy_y6U",
+    authDomain: "cuadrantealfredo-8fb83.firebaseapp.com",
+    databaseURL: "https://cuadrantealfredo-8fb83-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "cuadrantealfredo-8fb83",
+    storageBucket: "cuadrantealfredo-8fb83.firebasestorage.app",
+    messagingSenderId: "220264725344",
+    appId: "1:220264725344:web:2541e92d3d396aa53d7c05"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  window.db = getDatabase(app); // Hacemos que la base de datos sea accesible globalmente
+</script>
 
   <style>
     :root {
