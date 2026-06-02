@@ -690,7 +690,7 @@
 
       const calc = calculosAnuales();
 
-      // --- CONSTRUCCIÓN DEL CALENDARIO ---
+    // --- CONSTRUCCIÓN DEL CALENDARIO ---
       const renderMes = (mIdx) => {
         const primerDia = new Date(year, mIdx, 1);
         const ultimoDia = new Date(year, mIdx + 1, 0);
@@ -757,46 +757,41 @@
             </div>
           );
         }
-const cambiarMes = (direccion) => {
-  let nuevoMes = mesVisible + direccion;
-  if (nuevoMes > 11) { nuevoMes = 0; } // Salto a enero si pasas de diciembre
-  if (nuevoMes < 0) { nuevoMes = 11; } // Salto a diciembre si retrocedes de enero
-  setMesVisible(nuevoMes);
-};
-    
+        return celdas;
+      };
 
-return (
-    <div className="container">
-      {/* NAVEGACIÓN */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
-        <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1))}>
-          {"< Anterior"}
-        </button>
-        <h2>{MESES_NOM[fechaVista.getMonth()]} {fechaVista.getFullYear()}</h2>
-        <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
-          {"Siguiente >"}
-        </button>
-      </div>
+      return (
+        <div className="container">
+          {/* NAVEGACIÓN */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
+            <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1))}>
+              {"< Anterior"}
+            </button>
+            <h2>{MESES_NOM[fechaVista.getMonth()]} {fechaVista.getFullYear()}</h2>
+            <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
+              {"Siguiente >"}
+            </button>
+          </div>
 
-      {/* HEADER */}
-      <header>
-        <div className="user-info">
-          <h1>{user.nombre}</h1>
-          <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
-        </div>
-        <div className="header-actions">
-          <button className="btn-icon" onClick={() => setShowGear(true)}>
-            <i className="fa-solid fa-gear"></i>
-          </button>
-        </div>
-      </header>
+          {/* HEADER */}
+          <header>
+            <div className="user-info">
+              <h1>{user.nombre}</h1>
+              <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
+            </div>
+            <div className="header-actions">
+              <button className="btn-icon" onClick={() => setShowGear(true)}>
+                <i className="fa-solid fa-gear"></i>
+              </button>
+            </div>
+          </header>
 
-      {/* CONTENIDO */}
-      {menuActivo === "cuadrante" && (
-        <div key={fechaVista.getMonth()} className="month-container">
-          {renderMes(fechaVista.getMonth())}
-        </div>
-      )}
+          {/* CONTENIDO */}
+          {menuActivo === "cuadrante" && (
+            <div className="month-container">
+              {renderMes(fechaVista.getMonth())}
+            </div>
+          )}
    
 
 
