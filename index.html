@@ -180,14 +180,14 @@
     /* Contenedor principal que ajusta el calendario al ancho de pantalla */
 .calendar-wrapper {
   width: 100%;
-  padding: 5px;
+  padding: 10px;
   box-sizing: border-box;
 }
 
 .month-container {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 4px;
   width: 100%;
 }
 
@@ -785,16 +785,13 @@
 
   <div style={{ textAlign: 'center' }}>
     <h2 style={{ margin: 0 }}>{MESES_NOM[fechaVista.getMonth()]}</h2>
-   <select 
+ <select 
   value={fechaVista.getFullYear()} 
   onChange={(e) => setFechaVista(new Date(parseInt(e.target.value), fechaVista.getMonth(), 1))}
-  style={{ background: 'transparent', border: 'none', fontSize: '16px', fontWeight: 'bold', color: 'white', cursor: 'pointer' }}
+  style={{ background: 'transparent', color: 'white', border: 'none', fontWeight: 'bold' }}
 >
-  {/* Genera automáticamente desde 2025 hasta 2050 */}
   {Array.from({length: 26}, (_, i) => 2025 + i).map(y => (
-    <option key={y} value={y} style={{color: 'black'}}>
-      {y}
-    </option>
+    <option key={y} value={y} style={{color: 'black'}}>{y}</option>
   ))}
 </select>
 
