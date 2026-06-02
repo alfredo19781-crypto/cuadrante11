@@ -765,20 +765,22 @@ const cambiarMes = (direccion) => {
 };
     
 
-  return (
+ return (
   <div className="container">
-    {/* --- NAVEGACIÓN NUEVA --- */}
+    {/* --- NAVEGACIÓN (Botones de mes anterior/siguiente) --- */}
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
       <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1))}>
         {"< Anterior"}
       </button>
+      
       <h2>{MESES_NOM[fechaVista.getMonth()]} {fechaVista.getFullYear()}</h2>
+      
       <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
         {"Siguiente >"}
       </button>
     </div>
 
-    {/* --- HEADER ORIGINAL --- */}
+    {/* --- HEADER --- */}
     <header>
       <div className="user-info">
         <h1>{user.nombre}</h1>
@@ -794,7 +796,6 @@ const cambiarMes = (direccion) => {
     {/* --- CONTENIDO --- */}
     {menuActivo === "cuadrante" && (
       <div key={fechaVista.getMonth()} className="month-container">
-        {/* Aquí renderizamos el mes actual basándonos en fechaVista */}
         {renderMes(fechaVista.getMonth())}
       </div>
     )}
