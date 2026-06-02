@@ -184,21 +184,21 @@
   box-sizing: border-box;
 }
 
-/* Fila de L M X J V S D */
+.month-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  width: 100%;
+}
+
+/* Fila de encabezados L M X J V S D */
 .weekdays-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
   font-weight: bold;
-  color: var(--text-muted);
   padding: 10px 0;
-  font-size: 12px;
-}
- /* La cuadrícula real del calendario */
-.month-container {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr); /* Esto es la clave para que quepan 7 días */
-  gap: 4px; /* Espacio entre los cuadraditos */
+  background: var(--surface);
 }
 
     .month-header {
@@ -819,12 +819,9 @@
                    {/* CONTENIDO */}
 {menuActivo === "cuadrante" && (
   <div className="calendar-wrapper">
-    {/* Fila de días de la semana */}
     <div className="weekdays-row">
-      {DIAS_SEM.map(d => <div key={d} className="weekday-header">{d}</div>)}
+      {DIAS_SEM.map(d => <div key={d}>{d}</div>)}
     </div>
-    
-    {/* Cuadrícula del calendario */}
     <div className="month-container">
       {renderMes(fechaVista.getMonth())}
     </div>
