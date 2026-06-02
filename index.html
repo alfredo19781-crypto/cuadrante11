@@ -451,7 +451,7 @@
       // Añade esto junto a tus otros useState
       const [mesVisible, setMesVisible] = useState(new Date().getMonth());
       // Esta es la lógica que calcula qué días pertenecen al mes actual
-      const year = fechaVista.getFullYear();
+      
       const month = fechaVista.getMonth();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const firstDayOfMonth = new Date(year, month, 1).getDay();
@@ -753,25 +753,30 @@ const cambiarMes = (direccion) => {
      return (
   <div className="contenedor-principal">
     {/* Controles de Navegación */}
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', padding: '10px' }}>
-      <button onClick={() => cambiarMes(-1)}>{"< Anterior"}</button>
-      <h2>{MESES_NOM[mesVisible]} {year}</h2>
-      <button onClick={() => cambiarMes(1)}>{"Siguiente >"}</button>
-    </div>
+  // 1. Navegación (esto usa setFechaVista directamente)
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
+  <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1))}>
+    {"< Anterior"}
+  </button>
+  
+  <h2>{MESES_NOM[fechaVista.getMonth()]} {fechaVista.getFullYear()}</h2>
+  
+  <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
+    {"Siguiente >"}
+  </button>
+</div>
 
-    {/* Pintado de UN SOLO mes */}
-    <div key={mesVisible} className="month-container">
-      <div className="month-header">
-        <span>{MESES_NOM[mesVisible]}</span>
-        <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
-      </div>
-      <div className="days-grid">
-        {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
-        {/* Aquí asumimos que tienes una función o variable 'celdas' preparada para el mes actual */}
-        {celdas} 
-      </div>
-    </div>
+// 2. Pintado (Aquí está el truco: usamos fechaVista.getMonth() y getFullYear())
+<div key={fechaVista.getMonth()} className="month-container">
+  <div className="month-header">
+    <span>{MESES_NOM[fechaVista.getMonth()]}</span>
+    <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{fechaVista.getFullYear()}</span>
   </div>
+  <div className="days-grid">
+    {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
+    {celdas} 
+  </div>
+</div>
 );
       };
 
