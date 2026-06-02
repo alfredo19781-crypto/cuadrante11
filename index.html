@@ -814,19 +814,22 @@
           </div>
         </header>
 
-        {/* CONTENIDO */}
-       {menuActivo === "cuadrante" && (
-          <div className="calendar-wrapper">
-            <div className="weekdays-row">
-              {["LU", "MA", "MI", "JU", "VI", "SÁ", "DO"].map(d => <div key={d}>{d}</div>)}
-            </div>
-            <div className="month-container">
-              {renderMes(fechaVista.getMonth())}
-            </div>
+      {/* CONTENIDO */}
+      {menuActivo === "cuadrante" && (
+        <div className="calendar-wrapper">
+          <div className="weekdays-row">
+            {["LU", "MA", "MI", "JU", "VI", "SÁ", "DO"].map(d => (
+              <div key={d}>{d}</div>
+            ))}
           </div>
-        )}
-      </div> 
-    );
+          <div className="month-container">
+            {renderMes(fechaVista.getMonth())}
+          </div>
+        </div>
+      )}
+    </div> 
+  ); 
+}
   } // <--- ESTA LLAVE CIERRA LA FUNCIÓN APP(
    
   const container = document.getElementById('root');
