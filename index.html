@@ -178,11 +178,12 @@
 
     /* --- CALENDARIO MENSUAL --- */
     .month-container {
-      background: var(--surface);
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      margin-bottom: 16px;
-      overflow: hidden;
+    display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7 columnas iguales */
+  gap: 2px;
+  padding: 5px;
+  height: auto; /* Evita que crezca infinitamente */
+  max-width: 100%;
     }
 
     .month-header {
@@ -210,16 +211,14 @@
     }
 
     .day-cell {
-      aspect-ratio: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 2px;
-      border-radius: 8px;
-      cursor: pointer;
-      position: relative;
-      border: 1px solid transparent;
+     background: var(--surface);
+  min-height: 50px; /* Ajusta según lo que necesites */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2px;
+  font-size: 11px;
     }
 
     .day-number {
@@ -763,15 +762,27 @@
       return (
         <div className="container">
           {/* NAVEGACIÓN */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
-            <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1))}>
-              {"< Anterior"}
-            </button>
-            <h2>{MESES_NOM[fechaVista.getMonth()]} {fechaVista.getFullYear()}</h2>
-            <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
-              {"Siguiente >"}
-            </button>
-          </div>
+         {/* NAVEGACIÓN */}
+<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', padding: '10px' }}>
+  <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1))}>
+    {"< Anterior"}
+  </button>
+
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <h2 style={{ margin: 0, fontSize: '18px' }}>{MESES_NOM[fechaVista.getMonth()]}</h2>
+    <select 
+      value={fechaVista.getFullYear()} 
+      onChange={(e) => setFechaVista(new Date(parseInt(e.target.value), fechaVista.getMonth(), 1))}
+      style={{ background: 'transparent', color: 'white', border: 'none', fontWeight: 'bold' }}
+    >
+      {[2025, 2026, 2027, 2028].map(y => <option key={y} value={y} style={{color: 'black'}}>{y}</option>)}
+    </select>
+  </div>
+
+  <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
+    {"Siguiente >"}
+  </button>
+</div>
 
           {/* HEADER */}
           <header>
