@@ -179,11 +179,10 @@
     /* --- CALENDARIO MENSUAL --- */
     /* Contenedor principal que ajusta el calendario al ancho de pantalla */
 .calendar-wrapper {
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
+  background-color: white; /* Esto hará que el fondo del calendario sea blanco */
+  color: black;            /* Esto hará que las letras sean negras */
+  padding: 20px;           /* Esto le da un poco de espacio */
 }
-
 .month-container {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -827,7 +826,6 @@
           </div>
         </div>
       )}
-    </div>
   );
 }
 
