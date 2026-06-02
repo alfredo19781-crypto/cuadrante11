@@ -815,10 +815,10 @@
         </header>
 
         {/* CONTENIDO */}
-        {menuActivo === "cuadrante" && (
+       {menuActivo === "cuadrante" && (
           <div className="calendar-wrapper">
             <div className="weekdays-row">
-              {DIAS_SEM.map(d => <div key={d}>{d}</div>)}
+              {["LU", "MA", "MI", "JU", "VI", "SÁ", "DO"].map(d => <div key={d}>{d}</div>)}
             </div>
             <div className="month-container">
               {renderMes(fechaVista.getMonth())}
@@ -827,9 +827,11 @@
         )}
       </div> 
     );
-  } // <--- ESTA LLAVE CIERRA LA FUNCIÓN APP
+  } // <--- ESTA LLAVE CIERRA LA FUNCIÓN APP(
    
-
+  const container = document.getElementById('root');
+  const root = ReactDOM.createRoot(container);
+  root.render(<App />);
 
    {menuActivo === "bolsas" && (
   <div style={{animation: 'fadeIn 0.2s ease-out'}}>
@@ -1161,9 +1163,7 @@
       );
     }
 
-    const container = document.getElementById('root');
-    const root = ReactDOM.createRoot(container);
-    root.render(<App />);
+   
 
 
   </script>
