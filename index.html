@@ -814,7 +814,7 @@
           </div>
         </header>
 
-      {/* CONTENIDO */}
+     {/* CONTENIDO */}
       {menuActivo === "cuadrante" && (
         <div className="calendar-wrapper">
           <div className="weekdays-row">
@@ -825,16 +825,15 @@
           <div className="month-container">
             {renderMes(fechaVista.getMonth())}
           </div>
-        </div> // Cierra calendar-wrapper
-      )} // Cierra la condición menuActivo
-    
-  ); // Cierra el return
-} // Cierra la función App
-  
-   
-  const container = document.getElementById('root');
-  const root = ReactDOM.createRoot(container);
-  root.render(<App />);
+        </div>
+      )}
+    </div>
+  );
+}
+
+const container = document.getElementById('root');
+const root = ReactDOM.createRoot(container);
+root.render(<App />);
 
    {menuActivo === "bolsas" && (
   <div style={{animation: 'fadeIn 0.2s ease-out'}}>
