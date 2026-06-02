@@ -446,7 +446,15 @@
       const [textoExportado, setTextoExportado] = useState("");
       const [tempTipo12h, setTempTipo12h] = useState("D");
       const [menuActivo, setMenuActivo] = useState("cuadrante");
-
+      // Añade esto cerca de la línea 448
+      const [fechaVista, setFechaVista] = useState(new Date());
+      // Añade esto junto a tus otros useState
+      const [mesVisible, setMesVisible] = useState(new Date().getMonth());
+      // Esta es la lógica que calcula qué días pertenecen al mes actual
+      const year = fechaVista.getFullYear();
+      const month = fechaVista.getMonth();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const firstDayOfMonth = new Date(year, month, 1).getDay();
       // Carga unificada de datos desde LocalStorage
       const [user, setUser] = useState(() => {
         const local = localStorage.getItem("cuadrante_user_v3");
@@ -736,20 +744,36 @@
             </div>
           );
         }
+const cambiarMes = (direccion) => {
+  let nuevoMes = mesVisible + direccion;
+  if (nuevoMes > 11) { nuevoMes = 0; } // Salto a enero si pasas de diciembre
+  if (nuevoMes < 0) { nuevoMes = 11; } // Salto a diciembre si retrocedes de enero
+  setMesVisible(nuevoMes);
+};
+     return (
+  <div className="contenedor-principal">
+    {/* Controles de Navegación */}
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '20px', padding: '10px' }}>
+      <button onClick={() => cambiarMes(-1)}>{"< Anterior"}</button>
+      <h2>{MESES_NOM[mesVisible]} {year}</h2>
+      <button onClick={() => cambiarMes(1)}>{"Siguiente >"}</button>
+    </div>
 
-        return (
-          <div key={mIdx} className="month-container">
-            <div className="month-header">
-              <span>{MESES_NOM[mIdx]}</span>
-              <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
-            </div>
-            <div className="days-grid">
-              {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
-              {celdas}
-            </div>
-          </div>
-        );
-      };
+    {/* Pintado de UN SOLO mes */}
+    <div key={mesVisible} className="month-container">
+      <div className="month-header">
+        <span>{MESES_NOM[mesVisible]}</span>
+        <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
+      </div>
+      <div className="days-grid">
+        {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
+        {/* Aquí asumimos que tienes una función o variable 'celdas' preparada para el mes actual */}
+        {celdas} 
+      </div>
+    </div>
+  </div>
+);
+   
 
       return (
         <div className="container">
