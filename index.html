@@ -765,41 +765,41 @@ const cambiarMes = (direccion) => {
 };
     
 
-      return (
-        <div className="container">
-           {"< Anterior"}
-  </button>
-  
-  <h2>{MESES_NOM[fechaVista.getMonth()]} {fechaVista.getFullYear()}</h2>
-  
-  <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
-    {"Siguiente >"}
-  </button>
-</div>
-          {/* --- HEADER --- */}
-          <header>
-            <div className="user-info">
-              <h1>{user.nombre}</h1>
-              <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
-            </div>
-            <div className="header-actions">
-              <button className="btn-icon" onClick={() => setShowGear(true)}><i className="fa-solid fa-gear"></i></button>
-            </div>
-          </header>
+    return (
+  <div className="container">
+    {/* --- HEADER (Original) --- */}
+    <header>
+      <div className="user-info">
+        <h1>{user.nombre}</h1>
+        <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
+      </div>
+      <div className="header-actions">
+        <button className="btn-icon" onClick={() => setShowGear(true)}>
+          <i className="fa-solid fa-gear"></i>
+        </button>
+      </div>
+    </header>
 
-          {/* --- NAVEGACIÓN ANUAL --- */}
-          <div className="year-controls">
-            <button className="btn-text" onClick={() => cambiarAnio(-1)}><i className="fa-solid fa-chevron-left"></i> Anterior</button>
-            <span className="year-display">{year}</span>
-            <button className="btn-text" onClick={() => cambiarAnio(1)}>Siguiente <i className="fa-solid fa-chevron-right"></i></button>
-          </div>
+    {/* --- NAVEGACIÓN ANUAL (Original) --- */}
+    <div className="year-controls">
+      <button className="btn-text" onClick={() => cambiarAnio(-1)}>
+        <i className="fa-solid fa-chevron-left"></i> Anterior
+      </button>
+      <span className="year-display">{year}</span>
+      <button className="btn-text" onClick={() => cambiarAnio(1)}>
+        Siguiente <i className="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
 
-          {/* --- CONTENIDO --- */}
-          {menuActivo === "cuadrante" && (
-            <>
-              {Array.from({length:12}, (_, i) => renderMes(i))}
-            </>
-          )}
+    {/* --- CONTENIDO (AQUÍ ESTÁ EL CAMBIO) --- */}
+    {menuActivo === "cuadrante" && (
+      <>
+        {/* Aquí decides si pintas los 12 meses o solo uno */}
+        {Array.from({ length: 12 }, (_, i) => renderMes(i))}
+      </>
+    )}
+  </div>
+);
 
    {menuActivo === "bolsas" && (
   <div style={{animation: 'fadeIn 0.2s ease-out'}}>
