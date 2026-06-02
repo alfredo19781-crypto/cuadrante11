@@ -825,11 +825,12 @@
           <div className="month-container">
             {renderMes(fechaVista.getMonth())}
           </div>
-        </div>
-      )}
-    </div> 
-  ); 
-}// <--- ESTA LLAVE CIERRA LA FUNCIÓN APP(
+        </div> // Cierra calendar-wrapper
+      )} // Cierra la condición menuActivo
+    </div> // Cierra el div con className="container" que abriste al principio
+  ); // Cierra el return
+} // Cierra la función App
+  
    
   const container = document.getElementById('root');
   const root = ReactDOM.createRoot(container);
