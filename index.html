@@ -773,66 +773,11 @@
         return celdas;
       };
 
-      return (
-        <div className="container" style={{ minHeight: '100vh', backgroundColor: 'white', color: 'black' }}>
-         
-        {/* NAVEGACIÓN */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
-          <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1))}>
-            {"< Anterior"}
-          </button>
-
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ margin: 0 }}>{MESES_NOM[fechaVista.getMonth()]}</h2>
-            <select 
-              value={fechaVista.getFullYear()} 
-              onChange={(e) => setFechaVista(new Date(parseInt(e.target.value), fechaVista.getMonth(), 1))}
-              style={{ background: 'transparent', color: 'white', border: 'none', fontWeight: 'bold' }}
-            >
-              {Array.from({length: 26}, (_, i) => 2025 + i).map(y => (
-                <option key={y} value={y} style={{color: 'black'}}>{y}</option>
-              ))}
-            </select>
-          </div>
-
-          <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
-            {"Siguiente >"}
-          </button>
-        </div> {/* <--- ESTE DIV CERRABA LA NAVEGACIÓN Y FALTABA */}
-
-        {/* HEADER */}
-        <header>
-          <div className="user-info">
-            <h1>{user.nombre}</h1>
-            <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
-          </div>
-          <div className="header-actions">
-            <button className="btn-icon" onClick={() => setShowGear(true)}>
-              <i className="fa-solid fa-gear"></i>
-            </button>
-          </div>
-        </header>
-
-   {/* CONTENIDO */}
-      <div style={{ backgroundColor: 'red', padding: '50px', color: 'white' }}>
-        <h1>ESTO ES UNA PRUEBA: Si ves esto, el código funciona.</h1>
-      </div>
-
-      {menuActivo === "cuadrante" && (
-        <div className="calendar-wrapper">
-          <div className="weekdays-row">
-            {["LU", "MA", "MI", "JU", "VI", "SÁ", "DO"].map(d => (
-              <div key={d}>{d}</div>
-            ))}
-          </div>
-          <div className="month-container">
-            {renderMes(fechaVista.getMonth())}
-          </div>
-        </div>
-      )}
-     );
-}
-
+    return (
+    <div style={{ backgroundColor: 'red', height: '100vh', padding: '50px' }}>
+      <h1>Si ves esto, tu programa funciona.</h1>
+    </div>
+  );
 const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container);
 root.render(<App />);
