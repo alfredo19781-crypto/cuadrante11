@@ -450,6 +450,19 @@
       const [fechaVista, setFechaVista] = useState(new Date());
       // Añade esto junto a tus otros useState
       const [mesVisible, setMesVisible] = useState(new Date().getMonth());
+      useEffect(() => {
+  const handler = function() {
+    const doc = window.document;
+    const docEl = doc.documentElement;
+    const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+    if (requestFullscreen) requestFullscreen.call(docEl);
+  };
+  
+  window.addEventListener("click", handler, { once: true });
+  
+  // Esto limpia el evento si el componente se desmonta
+  return () => window.removeEventListener("click", handler);
+}, []);
       // Esta es la lógica que calcula qué días pertenecen al mes actual
       
       const month = fechaVista.getMonth();
@@ -1142,18 +1155,7 @@ const cambiarMes = (direccion) => {
     const root = ReactDOM.createRoot(container);
     root.render(<App />);
 
-    // Petición automática de pantalla completa al tocar la app
-    window.addEventListener("click", function() {
-      const doc = window.document;
-      const docEl = doc.documentElement;
-      const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-      
-      if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-        requestFullscreen.call(docEl).catch(err => {
-          console.log("Modo pantalla completa bloqueado por el navegador.");
-        });
-      }
-    });
+
   </script>
 </body>
 </html>
