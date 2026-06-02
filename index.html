@@ -177,14 +177,29 @@
     }
 
     /* --- CALENDARIO MENSUAL --- */
-    .month-container {
-    display: grid;
-  grid-template-columns: repeat(7, 1fr); /* 7 columnas iguales */
-  gap: 2px;
+    /* Contenedor principal que ajusta el calendario al ancho de pantalla */
+.calendar-wrapper {
+  width: 100%;
   padding: 5px;
-  height: auto; /* Evita que crezca infinitamente */
-  max-width: 100%;
-    }
+  box-sizing: border-box;
+}
+
+/* Fila de L M X J V S D */
+.weekdays-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  color: var(--text-muted);
+  padding: 10px 0;
+  font-size: 12px;
+}
+ /* La cuadrícula real del calendario */
+.month-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* Esto es la clave para que quepan 7 días */
+  gap: 4px; /* Espacio entre los cuadraditos */
+}
 
     .month-header {
       background: var(--primary-light);
@@ -210,16 +225,16 @@
       padding: 4px 0;
     }
 
-    .day-cell {
-     background: var(--surface);
-  min-height: 50px; /* Ajusta según lo que necesites */
+   .day-cell {
+  background: var(--surface);
+  min-height: 60px; /* Ajusta este valor para hacer los cuadrados más altos o bajos */
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  padding: 2px;
-  font-size: 11px;
-    }
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+}
 
     .day-number {
       font-size: 13px;
@@ -761,23 +776,27 @@
 
       return (
         <div className="container">
-          {/* NAVEGACIÓN */}
+         
          {/* NAVEGACIÓN */}
-<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', padding: '10px' }}>
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px' }}>
   <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() - 1, 1))}>
     {"< Anterior"}
   </button>
 
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-    <h2 style={{ margin: 0, fontSize: '18px' }}>{MESES_NOM[fechaVista.getMonth()]}</h2>
-    <select 
-      value={fechaVista.getFullYear()} 
-      onChange={(e) => setFechaVista(new Date(parseInt(e.target.value), fechaVista.getMonth(), 1))}
-      style={{ background: 'transparent', color: 'white', border: 'none', fontWeight: 'bold' }}
-    >
-      {[2025, 2026, 2027, 2028].map(y => <option key={y} value={y} style={{color: 'black'}}>{y}</option>)}
-    </select>
-  </div>
+  <div style={{ textAlign: 'center' }}>
+    <h2 style={{ margin: 0 }}>{MESES_NOM[fechaVista.getMonth()]}</h2>
+   <select 
+  value={fechaVista.getFullYear()} 
+  onChange={(e) => setFechaVista(new Date(parseInt(e.target.value), fechaVista.getMonth(), 1))}
+  style={{ background: 'transparent', border: 'none', fontSize: '16px', fontWeight: 'bold', color: 'white', cursor: 'pointer' }}
+>
+  {/* Genera automáticamente desde 2025 hasta 2050 */}
+  {Array.from({length: 26}, (_, i) => 2025 + i).map(y => (
+    <option key={y} value={y} style={{color: 'black'}}>
+      {y}
+    </option>
+  ))}
+</select>
 
   <button onClick={() => setFechaVista(new Date(fechaVista.getFullYear(), fechaVista.getMonth() + 1, 1))}>
     {"Siguiente >"}
@@ -797,12 +816,20 @@
             </div>
           </header>
 
-          {/* CONTENIDO */}
-          {menuActivo === "cuadrante" && (
-            <div className="month-container">
-              {renderMes(fechaVista.getMonth())}
-            </div>
-          )}
+                   {/* CONTENIDO */}
+{menuActivo === "cuadrante" && (
+  <div className="calendar-wrapper">
+    {/* Fila de días de la semana */}
+    <div className="weekdays-row">
+      {DIAS_SEM.map(d => <div key={d} className="weekday-header">{d}</div>)}
+    </div>
+    
+    {/* Cuadrícula del calendario */}
+    <div className="month-container">
+      {renderMes(fechaVista.getMonth())}
+    </div>
+  </div>
+)}
    
 
 
