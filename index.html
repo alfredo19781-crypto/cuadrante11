@@ -737,39 +737,40 @@
           );
         }
 
-   return (
-    <div className="container">
-      {/* 1. Header (dentro del container) */}
-      <header>
-        <div className="user-info">
-          <h1>{user.nombre}</h1>
-          <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
-        </div>
-        <div className="header-actions">
-          <button className="btn-icon" onClick={() => setShowGear(true)}>
-            <i className="fa-solid fa-gear"></i>
-          </button>
-        </div>
-      </header>
+  return (
+    <>
+      <div className="container">
+        {/* Header */}
+        <header>
+          <div className="user-info">
+            <h1>{user.nombre}</h1>
+            <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
+          </div>
+          <div className="header-actions">
+            <button className="btn-icon" onClick={() => setShowGear(true)}>
+              <i className="fa-solid fa-gear"></i>
+            </button>
+          </div>
+        </header>
 
-      {/* 2. Tu bloque de prueba (dentro del container) */}
-      <div style={{ border: '2px solid red', padding: '20px', margin: '20px', backgroundColor: 'white' }}>
-        <h2>Aquí vendrá el calendario</h2>
-      </div>
+        {/* Bloque de prueba */}
+        <div style={{ border: '2px solid red', padding: '20px', margin: '20px', backgroundColor: 'white' }}>
+          <h2>Aquí vendrá el calendario</h2>
+        </div>
 
-      {/* 3. El resto de tu calendario (dentro del container) */}
-      <div key={mIdx} className="month-container">
-        <div className="month-header">
-          <span>{MESES_NOM[mIdx]}</span>
-          <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
-        </div>
-        <div className="days-grid">
-          {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
-          {celdas}
+        {/* Calendario */}
+        <div key={mIdx} className="month-container">
+          <div className="month-header">
+            <span>{MESES_NOM[mIdx]}</span>
+            <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
+          </div>
+          <div className="days-grid">
+            {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
+            {celdas}
+          </div>
         </div>
       </div>
-      
-    </div> // Este cierre termina el 'container' principal que engloba TODO
+    </>
   );
             <div className="user-info">
               <h1>{user.nombre}</h1>
