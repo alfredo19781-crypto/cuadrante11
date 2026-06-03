@@ -737,14 +737,25 @@
           );
         }
 
-      return (
+     return (
     <div className="container">
+      {/* EL HEADER VA AQUÍ ARRIBA, DENTRO DEL DIV CONTAINER */}
+      <header>
+        <div className="user-info">
+          <h1>{user.nombre}</h1>
+          <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-icon" onClick={() => setShowGear(true)}><i className="fa-solid fa-gear"></i></button>
+        </div>
+      </header>
+
       {/* --- TU BLOQUE DE PRUEBA --- */}
       <div style={{ border: '2px solid red', padding: '20px', margin: '20px', backgroundColor: 'white' }}>
         <h2>Aquí vendrá el calendario</h2>
       </div>
 
-      {/* --- EL RESTO DE TU CONTENIDO (lo que tenías antes) --- */}
+      {/* --- EL RESTO DE TU CONTENIDO --- */}
       <div key={mIdx} className="month-container">
         <div className="month-header">
           <span>{MESES_NOM[mIdx]}</span>
@@ -757,7 +768,6 @@
       </div>
     </div>
   );
-          <header>
             <div className="user-info">
               <h1>{user.nombre}</h1>
               <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
