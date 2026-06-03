@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -178,28 +177,13 @@
     }
 
     /* --- CALENDARIO MENSUAL --- */
-    /* Contenedor principal que ajusta el calendario al ancho de pantalla */
-.calendar-wrapper {
-  background-color: white; /* Esto hará que el fondo del calendario sea blanco */
-  color: black;            /* Esto hará que las letras sean negras */
-  padding: 20px;           /* Esto le da un poco de espacio */
-}
-.month-container {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-  width: 100%;
-}
-
-/* Fila de encabezados L M X J V S D */
-.weekdays-row {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  text-align: center;
-  font-weight: bold;
-  padding: 10px 0;
-  background: var(--surface);
-}
+    .month-container {
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
 
     .month-header {
       background: var(--primary-light);
@@ -225,16 +209,18 @@
       padding: 4px 0;
     }
 
-   .day-cell {
-  background: var(--surface);
-  min-height: 60px; /* Ajusta este valor para hacer los cuadrados más altos o bajos */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  cursor: pointer;
-}
+    .day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 2px;
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      border: 1px solid transparent;
+    }
 
     .day-number {
       font-size: 13px;
@@ -460,28 +446,7 @@
       const [textoExportado, setTextoExportado] = useState("");
       const [tempTipo12h, setTempTipo12h] = useState("D");
       const [menuActivo, setMenuActivo] = useState("cuadrante");
-      // Añade esto cerca de la línea 448
-      const [fechaVista, setFechaVista] = useState(new Date());
-      // Añade esto junto a tus otros useState
-      const [mesVisible, setMesVisible] = useState(new Date().getMonth());
-      useEffect(() => {
-  const handler = function() {
-    const doc = window.document;
-    const docEl = doc.documentElement;
-    const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-    if (requestFullscreen) requestFullscreen.call(docEl);
-  };
-  
-  window.addEventListener("click", handler, { once: true });
-  
-  // Esto limpia el evento si el componente se desmonta
-  return () => window.removeEventListener("click", handler);
-}, []);
-      // Esta es la lógica que calcula qué días pertenecen al mes actual
-      
-      const month = fechaVista.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const firstDayOfMonth = new Date(year, month, 1).getDay();
+
       // Carga unificada de datos desde LocalStorage
       const [user, setUser] = useState(() => {
         const local = localStorage.getItem("cuadrante_user_v3");
@@ -704,7 +669,7 @@
 
       const calc = calculosAnuales();
 
-    // --- CONSTRUCCIÓN DEL CALENDARIO ---
+      // --- CONSTRUCCIÓN DEL CALENDARIO ---
       const renderMes = (mIdx) => {
         const primerDia = new Date(year, mIdx, 1);
         const ultimoDia = new Date(year, mIdx + 1, 0);
@@ -771,17 +736,48 @@
             </div>
           );
         }
-        return celdas;
+
+        return (
+          <div key={mIdx} className="month-container">
+            <div className="month-header">
+              <span>{MESES_NOM[mIdx]}</span>
+              <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
+            </div>
+            <div className="days-grid">
+              {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
+              {celdas}
+            </div>
+          </div>
+        );
       };
 
-    return (
-    <div style={{ backgroundColor: 'red', height: '100vh', padding: '50px' }}>
-      <h1>Si ves esto, tu programa funciona.</h1>
-    </div>
-  );
-const container = document.getElementById('root');
-const root = ReactDOM.createRoot(container);
-root.render(<App />);
+      return (
+        <div className="container">
+          
+          {/* --- HEADER --- */}
+          <header>
+            <div className="user-info">
+              <h1>{user.nombre}</h1>
+              <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
+            </div>
+            <div className="header-actions">
+              <button className="btn-icon" onClick={() => setShowGear(true)}><i className="fa-solid fa-gear"></i></button>
+            </div>
+          </header>
+
+          {/* --- NAVEGACIÓN ANUAL --- */}
+          <div className="year-controls">
+            <button className="btn-text" onClick={() => cambiarAnio(-1)}><i className="fa-solid fa-chevron-left"></i> Anterior</button>
+            <span className="year-display">{year}</span>
+            <button className="btn-text" onClick={() => cambiarAnio(1)}>Siguiente <i className="fa-solid fa-chevron-right"></i></button>
+          </div>
+
+          {/* --- CONTENIDO --- */}
+          {menuActivo === "cuadrante" && (
+            <>
+              {Array.from({length:12}, (_, i) => renderMes(i))}
+            </>
+          )}
 
    {menuActivo === "bolsas" && (
   <div style={{animation: 'fadeIn 0.2s ease-out'}}>
@@ -1113,9 +1109,22 @@ root.render(<App />);
       );
     }
 
-   
+    const container = document.getElementById('root');
+    const root = ReactDOM.createRoot(container);
+    root.render(<App />);
 
-
+    // Petición automática de pantalla completa al tocar la app
+    window.addEventListener("click", function() {
+      const doc = window.document;
+      const docEl = doc.documentElement;
+      const requestFullscreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+      
+      if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        requestFullscreen.call(docEl).catch(err => {
+          console.log("Modo pantalla completa bloqueado por el navegador.");
+        });
+      }
+    });
   </script>
 </body>
 </html>
