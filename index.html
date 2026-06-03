@@ -738,9 +738,8 @@
         }
 
 return (
-  <>
     <div className="app-main-container">
-      {/* CABECERA */}
+      {/* 1. CABECERA */}
       <header>
         <div className="user-info">
           <h1>{user.nombre}</h1>
@@ -753,369 +752,153 @@ return (
         </div>
       </header>
 
-      {/* BLOQUE DE PRUEBA */}
+      {/* 2. BLOQUE DE PRUEBA */}
       <div style={{ border: '2px solid red', padding: '20px', margin: '20px', backgroundColor: 'white' }}>
         <h2>Aquí vendrá el calendario</h2>
       </div>
 
-      {/* CALENDARIO */}
-      <div className="month-container">
-        <div className="month-header">
-          <span>{MESES_NOM[mIdx]}</span>
-          <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
-        </div>
-        <div className="days-grid">
-          {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
-          {celdas}
-        </div>
+      {/* 3. NAVEGACIÓN ANUAL */}
+      <div className="year-controls">
+        <button className="btn-text" onClick={() => cambiarAnio(-1)}><i className="fa-solid fa-chevron-left"></i> Anterior</button>
+        <span className="year-display">{year}</span>
+        <button className="btn-text" onClick={() => cambiarAnio(1)}>Siguiente <i className="fa-solid fa-chevron-right"></i></button>
       </div>
+
+      {/* 4. CONTENIDO (Cuadrante o Bolsas) */}
+      {menuActivo === "cuadrante" && (
+        <div className="month-container">
+          <div className="month-header">
+            <span>{MESES_NOM[mIdx]}</span>
+            <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
+          </div>
+          <div className="days-grid">
+            {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
+            {celdas}
+          </div>
+        </div>
+      )}
+
+      {menuActivo === "bolsas" && (
+        <div style={{animation: 'fadeIn 0.2s ease-out'}}>
+          <h2 style={{fontSize:'16px', marginBottom:'12px', fontWeight:'800'}}>Resumen Anual ({year})</h2>
+          <div className="summary-grid">
+            <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Vacaciones', data: user.periodos})}>
+              <span className="label">🏖️ Vacaciones</span>
+              <span className="value">{calc.diasVacaciones} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>días</span></span>
+            </div>
+            <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Asuntos Propios', data: user.ap})}>
+              <span className="label">🟡 A. Propios</span>
+              <span className="value">{calc.apDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
+            </div>
+            <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Excesos', data: user.excesos})}>
+              <span className="label">🟢 Excesos</span>
+              <span className="value">{calc.excDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
+            </div>
+            <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Movilizaciones', data: user.movilizaciones})}>
+              <span className="label">⏱️ Movilizaciones</span>
+              <span className="value">{calc.bolsaMovTotal} <span style={{fontSize:'12px'}}>h</span></span>
+            </div>
+            <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Guardias', data: user.guardias})}>
+              <span className="label">🛡️ Guardias</span>
+              <span className="value">{user.guardias?.filter(g=>g.y===year).length || 0}</span>
+            </div>
+            <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Otros', data: user.otros})}>
+              <span className="label">💼 Otros</span>
+              <span className="value">{user.otros?.filter(o=>o.y===year).length || 0}</span>
+            </div>
+            <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Permisos', data: user.permisos || []})}>
+              <span className="label">📝 Permisos</span>
+              <span className="value">{user.permisos?.filter(p => p.y === year).length || 0}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. MENÚ INFERIOR */}
+      <div className="bottom-menu">
+        <button className={`menu-item ${menuActivo === "cuadrante" ? "active" : ""}`} onClick={() => setMenuActivo("cuadrante")}>
+          <i className="fa-solid fa-calendar-days"></i> Cuadrante
+        </button>
+        <button className={`menu-item ${menuActivo === "bolsas" ? "active" : ""}`} onClick={() => setMenuActivo("bolsas")}>
+          <i className="fa-solid fa-chart-pie"></i> Bolsas / Totales
+        </button>
+      </div>
+
+      {/* 6. MODALES */}
+      {edit && (
+        <div className="modal" onClick={() => setEdit(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Editar Día</h3>
+            <p style={{fontSize:'12px', color:'#64748B', marginBottom:'12px'}}>{edit.dK}</p>
+            <label>Tipo de Jornada</label>
+            <select id="modalTipo" defaultValue={edit.data.descanso ? "libre" : edit.data.tipo || "ninguno"}>
+              <option value="ninguno">Vacío</option>
+              <option value="libre">Descanso / Libre</option>
+              <option value="24h">Jornada 24h</option>
+              <option value="12h-D">Jornada 12h - Día (D)</option>
+              <option value="12h-N">Jornada 12h - Noche (N)</option>
+              <option value="G-24h">🛡️ Guardia 24h</option>
+              <option value="G-12h">🛡️ Guardia 12h</option>
+              <option value="MOV">⏱️ Movilización</option>
+            </select>
+            <button className="btn-primary" onClick={guardarCeldaRapida}>GUARDAR</button>
+            <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setEdit(null)}>CANCELAR</button>
+          </div>
+        </div>
+      )}
+
+      {showGear && (
+        <div className="modal" onClick={() => setShowGear(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>⚙️ Panel de Control ({year})</h2>
+            <div className="card" style={{borderTop:'3px solid #475569', background:'#F8FAFC'}}>
+              <label>💾 COPIA DE SEGURIDAD</label>
+              <button className="btn-backup" onClick={manejarExportar}>Generar Código</button>
+              <button className="btn-backup" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(true)}>Restaurar Copia</button>
+            </div>
+            {/* ...resto de tu código de configuración... */}
+            <button className="btn-danger" onClick={() => setShowGear(false)} style={{marginTop:'10px'}}>CERRAR PANEL</button>
+          </div>
+        </div>
+      )}
+
+      {detallesBolsa && (
+        <div className="modal" onClick={() => setDetallesBolsa(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Historial: {detallesBolsa.tipo}</h3>
+            <div style={{maxHeight:'300px', overflowY:'auto'}}>
+              {detallesBolsa.data?.filter(i => i.y === year).map((item, idx) => (
+                <div key={idx} style={{padding:'8px', borderBottom:'1px solid #E2E8F0', fontSize:'13px'}}>
+                  {item.dia}/{item.mes} - {item.concepto || item.turno || item.tipo}
+                </div>
+              ))}
+            </div>
+            <button className="btn-primary" onClick={() => setDetallesBolsa(null)}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {mostrarModalImportar && (
+        <div className="modal" onClick={() => setMostrarModalImportar(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Restaurar Copia de Seguridad</h3>
+            <textarea rows="6" placeholder="Pega aquí el código..." value={textoAImportar} onChange={e => setTextoAImportar(e.target.value)}></textarea>
+            <button className="btn-primary" onClick={manejarImportar}>RESTAURAR AHORA</button>
+          </div>
+        </div>
+      )}
+
+      {textoExportado && (
+        <div className="modal" onClick={() => setTextoExportado("")}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3>Tu Código de Seguridad</h3>
+            <textarea readOnly rows="6" value={textoExportado}></textarea>
+            <button className="btn-primary" onClick={() => { navigator.clipboard.writeText(textoExportado); }}>COPIAR</button>
+          </div>
+        </div>
+      )}
     </div>
-    </>
   );
-
-          {/* --- NAVEGACIÓN ANUAL --- */}
-          <div className="year-controls">
-            <button className="btn-text" onClick={() => cambiarAnio(-1)}><i className="fa-solid fa-chevron-left"></i> Anterior</button>
-            <span className="year-display">{year}</span>
-            <button className="btn-text" onClick={() => cambiarAnio(1)}>Siguiente <i className="fa-solid fa-chevron-right"></i></button>
-          </div>
-
-          {/* --- CONTENIDO --- */}
-          {menuActivo === "cuadrante" && (
-            <>
-              {Array.from({length:12}, (_, i) => renderMes(i))}
-            </>
-          )}
-
-   {menuActivo === "bolsas" && (
-  <div style={{animation: 'fadeIn 0.2s ease-out'}}>
-    <h2 style={{fontSize:'16px', marginBottom:'12px', fontWeight:'800'}}>Resumen Anual ({year})</h2>
-    <div className="summary-grid">
-      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Vacaciones', data: user.periodos})}>
-        <span className="label">🏖️ Vacaciones</span>
-        <span className="value">{calc.diasVacaciones} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>días</span></span>
-      </div>
-      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Asuntos Propios', data: user.ap})}>
-        <span className="label">🟡 A. Propios</span>
-        <span className="value">{calc.apDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
-      </div>
-      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Excesos', data: user.excesos})}>
-        <span className="label">🟢 Excesos</span>
-        <span className="value">{calc.excDisfrutados} <span style={{fontSize:'12px', color:'var(--text-muted)'}}>turnos</span></span>
-      </div>
-      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Movilizaciones', data: user.movilizaciones})}>
-        <span className="label">⏱️ Movilizaciones</span>
-        <span className="value">{calc.bolsaMovTotal} <span style={{fontSize:'12px'}}>h</span></span>
-      </div>
-      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Guardias', data: user.guardias})}>
-        <span className="label">🛡️ Guardias</span>
-        <span className="value">{user.guardias?.filter(g=>g.y===year).length || 0}</span>
-      </div>
-      <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Otros', data: user.otros})}>
-        <span className="label">💼 Otros</span>
-        <span className="value">{user.otros?.filter(o=>o.y===year).length || 0}</span>
-      </div>
-     <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Permisos', data: user.permisos || []})}>
-  <span className="label">📝 Permisos</span>
-  <span className="value">{user.permisos?.filter(p => p.y === year).length || 0}</span>
-</div>
-    </div>
-  </div>
-)}
-
-          {/* --- MENÚ INFERIOR --- */}
-          <div className="bottom-menu">
-            <button className={`menu-item ${menuActivo === "cuadrante" ? "active" : ""}`} onClick={() => setMenuActivo("cuadrante")}>
-              <i className="fa-solid fa-calendar-days"></i>
-              Cuadrante
-            </button>
-            <button className={`menu-item ${menuActivo === "bolsas" ? "active" : ""}`} onClick={() => setMenuActivo("bolsas")}>
-              <i className="fa-solid fa-chart-pie"></i>
-              Bolsas / Totales
-            </button>
-          </div>
-
-          {/* --- MODAL EDICIÓN DÍA --- */}
-          {edit && (
-            <div className="modal" onClick={() => setEdit(null)}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h3>Editar Día</h3>
-                <p style={{fontSize:'12px', color:'#64748B', marginBottom:'12px'}}>{edit.dK}</p>
-                <label>Tipo de Jornada</label>
-                <select id="modalTipo" defaultValue={edit.data.descanso ? "libre" : edit.data.tipo || "ninguno"}>
-                  <option value="ninguno">Vacío</option>
-                  <option value="libre">Descanso / Libre</option>
-                  <option value="24h">Jornada 24h</option>
-                  <option value="12h-D">Jornada 12h - Día (D)</option>
-                  <option value="12h-N">Jornada 12h - Noche (N)</option>
-                  <option value="G-24h">🛡️ Guardia 24h</option>
-                  <option value="G-12h">🛡️ Guardia 12h</option>
-                  <option value="MOV">⏱️ Movilización</option>
-                </select>
-                <button className="btn-primary" onClick={guardarCeldaRapida}>GUARDAR</button>
-                <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setEdit(null)}>CANCELAR</button>
-              </div>
-            </div>
-          )}
-
-          {/* --- CONFIGURACIONES AJUSTES --- */}
-          {showGear && (
-            <div className="modal" onClick={() => setShowGear(false)}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h2>⚙️ Panel de Control ({year})</h2>
-                
-                <div className="card" style={{borderTop:'3px solid #475569', background:'#F8FAFC'}}>
-                  <label>💾 COPIA DE SEGURIDAD</label>
-                  <button className="btn-backup" onClick={manejarExportar}>Generar Código</button>
-                  <button className="btn-backup" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(true)}>Restaurar Copia</button>
-                </div>
-
-                <div className="card">
-                  <label>👤 DATOS GENERALES AGENTE</label>
-                  <div style={{display:'flex', gap:'5px'}}>
-                    <input type="text" value={user.nombre} onChange={e => setUser({...user, nombre: e.target.value})} placeholder="Nombre" />
-                    <input type="number" value={user.ingreso} onChange={e => setUser({...user, ingreso: parseInt(e.target.value) || 2008})} style={{width:'80px'}} />
-                  </div>
-                </div>
-
-                <div className="card">
-                  <label>🔄 GENERAR PATRÓN CÍCLICO</label>
-                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'4px', margin:'4px 0'}}>
-                    <div><label>Desde:</label><input type="date" id="rStart" defaultValue={`${year}-01-01`} /></div>
-                    <div><label>Hasta:</label><input type="date" id="rEnd" defaultValue={`${year}-12-31`} /></div>
-                  </div>
-                  <div style={{display:'flex', gap:'4px'}}>
-                    <select id="cHoras" onChange={(e) => document.getElementById('div12h').style.display = e.target.value === "12" ? "block" : "none"}>
-                      <option value="24">24h</option><option value="12">12h</option>
-                    </select>
-                    <input type="number" id="cDW" defaultValue="1" placeholder="Trabajo" />
-                    <input type="number" id="cDD" defaultValue="4" placeholder="Libre" />
-                  </div>
-                  <div id="div12h" style={{display:'none', marginTop:'4px'}}>
-                    <select value={tempTipo12h} onChange={(e) => setTempTipo12h(e.target.value)}>
-                      <option value="D">Solo Día (D)</option><option value="N">Solo Noche (N)</option><option value="D-N">Alternar D/N</option>
-                    </select>
-                  </div>
-                  <button className="btn-primary" onClick={aplicarPatron} style={{background:'#1E293B', marginTop:'8px'}}>CALCULAR ANUAL</button>
-                </div>
-
-                {/* --- SECCIÓN VACACIONES --- */}
-                <div className="card">
-                  <label>🏖️ ASIGNAR VACACIONES PERIODO</label>
-                  {(user.periodos || []).filter(p => p && p.y === year).map(p => (
-                    <div key={p.id} className="row-config">
-                      <div className="inputs-group">
-                        <select value={p.mIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mIni:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m.slice(0,3)}</option>)}
-                        </select>
-                        <select value={p.dIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dIni:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
-                        </select>
-                        <span>al</span>
-                        <select value={p.mFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mFin:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m.slice(0,3)}</option>)}
-                        </select>
-                        <select value={p.dFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dFin:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
-                        </select>
-                        <button className={`toggle-btn ${p.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, esProrroga:!x.esProrroga}:x)})}>ANUL</button>
-                      </div>
-                      <button className="btn-del" onClick={() => setUser({...user, periodos: user.periodos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
-                    </div>
-                  ))}
-                  <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null, dFin:null, mFin:null, esProrroga:false}]})}>+ Añadir Periodo</button>
-                </div>
-
-                {/* --- SECCIÓN EXCESOS --- */}
-                <div className="card" style={{borderTop:'3px solid #22C55E'}}>
-                  <label>🟢 EXCESOS DE JORNADA</label>
-                  {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
-                    const turnosDisponibles = obtenerTurnosDisponibles(exc.id, exc.y, exc.mes, exc.dia);
-                    return (
-                      <div key={exc.id} className="row-config">
-                        <div className="inputs-group">
-                          <input type="number" placeholder="Día" value={exc.dia || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-                          <select value={exc.mes || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                            <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                          </select>
-                          <select value={exc.turno || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, turno:e.target.value}:x)})} style={{width:'65px'}}>
-                            <option value="-">-</option>
-                            {["M", "T", "N"].map(t => {
-                              const disponible = turnosDisponibles.includes(t) || exc.turno === t;
-                              return <option key={t} value={t} disabled={!disponible}>{t} {!disponible ? "🚫" : ""}</option>;
-                            })}
-                          </select>
-                          <button className={`toggle-btn ${exc.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, esProrroga:!x.esProrroga}:x)})}>ANUL</button>
-                        </div>
-                        <button className="btn-del" onClick={() => setUser({...user, excesos: user.excesos.filter(x => x.id !== exc.id)})}>🗑️ Borrar</button>
-                      </div>
-                    );
-                  })}
-                  <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ Añadir Exceso</button>
-                </div>
-
-                {/* --- SECCIÓN ASUNTOS PROPIOS --- */}
-                <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
-                  <label>🟡 ASUNTOS PROPIOS</label>
-                  {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
-                    const turnosDisponibles = obtenerTurnosDisponibles(apItem.id, apItem.y, apItem.mes, apItem.dia);
-                    return (
-                      <div key={apItem.id} className="row-config">
-                        <div className="inputs-group">
-                          <input type="number" placeholder="Día" value={apItem.dia || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-                          <select value={apItem.mes || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                            <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                          </select>
-                          <select value={apItem.turno || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, turno:e.target.value}:x)})} style={{width:'65px'}}>
-                            <option value="-">-</option>
-                            {["M", "T", "N"].map(t => {
-                              const disponible = turnosDisponibles.includes(t) || apItem.turno === t;
-                              return <option key={t} value={t} disabled={!disponible}>{t} {!disponible ? "🚫" : ""}</option>;
-                            })}
-                          </select>
-                          <button className={`toggle-btn ${apItem.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, esProrroga:!x.esProrroga}:x)})}>ANUL</button>
-                        </div>
-                        <button className="btn-del" onClick={() => setUser({...user, ap: user.ap.filter(x => x.id !== apItem.id)})}>🗑️ Borrar</button>
-                      </div>
-                    );
-                  })}
-                  <button className="btn-primary" style={{background:'var(--ap-color)', color:'var(--dark)'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ Añadir AP</button>
-                </div>
-
-                {/* --- SECCIÓN GUARDIAS --- */}
-                <div className="card" style={{borderTop:'3px solid #F59E0B'}}>
-                  <label>🛡️ REGISTRO DE GUARDIAS</label>
-                  {(user.guardias || []).filter(g => g && g.y === year).map(g => (
-                    <div key={g.id} className="row-config">
-                      <div className="inputs-group">
-                        <input type="number" placeholder="Día" value={g.dia || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-                        <select value={g.mes || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                        </select>
-                        <select value={g.tipo || "Localizada"} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, tipo:e.target.value}:x)})} style={{width:'100px'}}>
-                          <option value="Localizada">Localizada</option>
-                          <option value="Presencial">Presencial</option>
-                        </select>
-                        <input type="number" placeholder="Horas" value={g.horas || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
-                      </div>
-                      <button className="btn-del" onClick={() => setUser({...user, guardias: user.guardias.filter(x => x.id !== g.id)})}>🗑️ Borrar</button>
-                    </div>
-                  ))}
-                  <button className="btn-primary" style={{background:'#F59E0B'}} onClick={() => setUser({...user, guardias: [...(user.guardias || []), {id:Date.now(), y:year, dia:null, mes:null, tipo:"Localizada", horas:24}]})}>+ Añadir Guardia</button>
-                </div>
-
-                {/* --- SECCIÓN MOVILIZACIONES RANGOS HORARIOS --- */}
-                <div className="card" style={{borderTop:'3px solid #8B5CF6'}}>
-                  <label><i className="fa-solid fa-user-clock"></i> GESTIÓN DE MOVILIZACIONES (HORAS EXTRAS)</label>
-                  
-                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', background:'#EEF2F6', padding:'8px', borderRadius:'8px', marginBottom:'10px'}}>
-                    <span style={{fontSize:'12px', fontWeight:'600', color:'#475569'}}>Horas acumuladas año anterior (Máx 8h):</span>
-                    <input 
-                      type="number" 
-                      min="0" 
-                      max="8" 
-                      value={(user.mov_arrastradas && user.mov_arrastradas[year]) || 0} 
-                      onChange={e => {
-                        const hVal = Math.min(8, Math.max(0, parseInt(e.target.value) || 0));
-                        setUser({
-                          ...user,
-                          mov_arrastradas: { ...(user.mov_arrastradas || {}), [year]: hVal }
-                        });
-                      }} 
-                      style={{width:'65px', padding:'4px', textAlign:'center', fontWeight:'bold'}} 
-                    />
-                  </div>
-
-                  {(user.movilizaciones || []).filter(m => m && m.y === year).map(m => (
-                    <div key={m.id} className="row-config">
-                      <div className="inputs-group" style={{flexWrap: 'wrap', gap: '4px'}}>
-                        <input type="number" placeholder="Día" value={m.dia || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'45px', textAlign:'center'}} />
-                        <select value={m.mes || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1', minWidth: '70px'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((mName,i)=><option key={i} value={i+1}>{mName.slice(0,3)}</option>)}
-                        </select>
-                        
-                        <div style={{display:'flex', alignItems:'center', gap:'2px', background:'#F1F5F9', padding:'2px 4px', borderRadius:'6px'}}>
-                          <input type="time" value={m.horaInicio || "00:00"} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horaInicio:e.target.value}:x)})} style={{padding:'2px', fontSize:'11px', border:'1px solid #CBD5E1', borderRadius:'4px'}} />
-                          <span style={{fontSize:'10px', color:'#64748B'}}>a</span>
-                          <input type="time" value={m.horaFin || "00:00"} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horaFin:e.target.value}:x)})} style={{padding:'2px', fontSize:'11px', border:'1px solid #CBD5E1', borderRadius:'4px'}} />
-                        </div>
-                        
-                        <div style={{fontSize:'11px', fontWeight:'bold', color:'#4F46E5', minWidth:'40px', textAlign:'center'}}>
-                          {calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h
-                        </div>
-                      </div>
-                      <button className="btn-del" onClick={() => setUser({...user, movilizaciones: user.movilizaciones.filter(x => x.id !== m.id)})}>🗑 *Borrar*</button>
-                    </div>
-                  ))}
-                  <button className="btn-primary" style={{background:'#8B5CF6'}} onClick={() => setUser({...user, movilizaciones: [...(user.movilizaciones || []), {id:Date.now(), y:year, dia:null, mes:null, horaInicio:"00:00", horaFin:"08:00"}]})}>+ Añadir por Rango Horario</button>
-                </div>
-
-                {/* --- SECCIÓN OTROS --- */}
-                <div className="card" style={{borderTop:'3px solid #06B6D4'}}>
-                  <label>💼 RECONOCIMIENTOS / CURSOS / COMISIONES</label>
-                  {(user.otros || []).filter(o => o && o.y === year).map(o => (
-                    <div key={o.id} className="row-config">
-                      <div className="inputs-group">
-                        <input type="number" placeholder="Día" value={o.dia || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-                        <select value={o.mes || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                        </select>
-                        <input type="text" placeholder="Concepto" value={o.concepto || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
-                        <input type="number" placeholder="Horas" value={o.horas || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
-                      </div>
-                      <button className="btn-del" onClick={() => setUser({...user, otros: user.otros.filter(x => x.id !== o.id)})}>🗑️ Borrar</button>
-                    </div>
-                  ))}
-                  <button className="btn-primary" style={{background:'#06B6D4'}} onClick={() => setUser({...user, otros: [...(user.otros || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]})}>+ Añadir Registro</button>
-                </div>
-
-                <button className="btn-danger" onClick={() => setShowGear(false)} style={{marginTop:'10px'}}>CERRAR PANEL</button>
-              </div>
-            </div>
-          )}
-{detallesBolsa && (
-  <div className="modal" onClick={() => setDetallesBolsa(null)}>
-    <div className="modal-content" onClick={e => e.stopPropagation()}>
-      <h3>Historial: {detallesBolsa.tipo}</h3>
-      <div style={{maxHeight:'300px', overflowY:'auto'}}>
-        {detallesBolsa.data?.filter(i => i.y === year).map((item, idx) => (
-          <div key={idx} style={{padding:'8px', borderBottom:'1px solid #E2E8F0', fontSize:'13px'}}>
-            {item.dia}/{item.mes} - {item.concepto || item.turno || item.tipo}
-          </div>
-        ))}
-      </div>
-      <button className="btn-primary" onClick={() => setDetallesBolsa(null)}>Cerrar</button>
-    </div>
-  </div>
-)}
-          {/* --- MODAL RESTAURAR BACKUP --- */}
-          {mostrarModalImportar && (
-            <div className="modal" onClick={() => setMostrarModalImportar(false)}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h3>Restaurar Copia de Seguridad</h3>
-                <textarea rows="6" placeholder="Pega aquí el código cifrado..." value={textoAImportar} onChange={e => setTextoAImportar(e.target.value)} style={{marginTop:'10px', fontFamily:'monospace', fontSize:'11px'}}></textarea>
-                <button className="btn-primary" onClick={manejarImportar}>RESTAURAR AHORA</button>
-                <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(false)}>CANCELAR</button>
-              </div>
-            </div>
-          )}
-
-          {/* --- SUBMODAL EXPORTAR BACKUP --- */}
-          {textoExportado && (
-            <div className="modal" onClick={() => setTextoExportado("")}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h3>Tu Código de Seguridad</h3>
-                <p style={{fontSize:'12px', color:'#64748B', margin:'5px 0'}}>Guarda este bloque de texto en tus notas:</p>
-                <textarea readOnly rows="6" value={textoExportado} onClick={e => e.target.select()} style={{background:'#F1F5F9', fontFamily:'monospace', fontSize:'11px'}}></textarea>
-                <button className="btn-primary" onClick={() => { navigator.clipboard.writeText(textoExportado); alert("¡Copiado al portapapeles!"); }}>COPIAR TEXTO</button>
-                <button className="btn-danger" onClick={() => setTextoExportado("")}>CERRAR</button>
-              </div>
-            </div>
-          )}
-
-        <div>
-      );
-    }
 
     const container = document.getElementById('root');
     const root = ReactDOM.createRoot(container);
