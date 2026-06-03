@@ -737,27 +737,26 @@
           );
         }
 
-        return (
-          <div key={mIdx} className="month-container">
-            <div className="month-header">
-              <span>{MESES_NOM[mIdx]}</span>
-              <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
-            </div>
-            <div className="days-grid">
-              {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
-              {celdas}
-              {/* CONTENEDOR DE PRUEBA */}
-<div style={{ border: '2px solid red', padding: '20px', margin: '20px' }}>
-  <h2>Aquí vendrá el calendario</h2>
-</div>
-          </div>
-        );
-      };
-
       return (
-        <div className="container">
-          
-          {/* --- HEADER --- */}
+    <div className="container">
+      {/* --- TU BLOQUE DE PRUEBA --- */}
+      <div style={{ border: '2px solid red', padding: '20px', margin: '20px', backgroundColor: 'white' }}>
+        <h2>Aquí vendrá el calendario</h2>
+      </div>
+
+      {/* --- EL RESTO DE TU CONTENIDO (lo que tenías antes) --- */}
+      <div key={mIdx} className="month-container">
+        <div className="month-header">
+          <span>{MESES_NOM[mIdx]}</span>
+          <span style={{fontSize:'12px', color:'var(--text-muted)'}}>{year}</span>
+        </div>
+        <div className="days-grid">
+          {DIAS_SEM.map(ds => <div key={ds} className="day-name">{ds}</div>)}
+          {celdas}
+        </div>
+      </div>
+    </div>
+  );
           <header>
             <div className="user-info">
               <h1>{user.nombre}</h1>
