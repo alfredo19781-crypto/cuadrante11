@@ -738,9 +738,10 @@
         }
 
   return (
-    <>
+    <div className="main-wrapper">
       <div className="container">
-        {/* Header */}
+        
+        {/* CABECERA */}
         <header>
           <div className="user-info">
             <h1>{user.nombre}</h1>
@@ -753,12 +754,12 @@
           </div>
         </header>
 
-        {/* Bloque de prueba */}
+        {/* BLOQUE DE PRUEBA */}
         <div style={{ border: '2px solid red', padding: '20px', margin: '20px', backgroundColor: 'white' }}>
           <h2>Aquí vendrá el calendario</h2>
         </div>
 
-        {/* Calendario */}
+        {/* CALENDARIO */}
         <div key={mIdx} className="month-container">
           <div className="month-header">
             <span>{MESES_NOM[mIdx]}</span>
@@ -769,8 +770,9 @@
             {celdas}
           </div>
         </div>
+
       </div>
-    </>
+    </div>
   );
             <div className="user-info">
               <h1>{user.nombre}</h1>
