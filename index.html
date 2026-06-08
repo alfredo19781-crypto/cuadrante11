@@ -483,8 +483,6 @@ function calcularAsuntosPropios(trienios) {
     return 6 + adicionales; // Sumamos la base de 6
 }
 function calcularTotales(user, year) {
-  console.log("Datos del usuario:", user); // Mira esto en la consola F12
-   function calcularTotales(user, year) {
     const datosCuadrante = user.cuadrante || {};
     const periodosVacaciones = (user.periodos || []).filter(p => p && p.y === year && !p.esProrroga);
     
@@ -492,6 +490,7 @@ function calcularTotales(user, year) {
 
     Object.keys(datosCuadrante).forEach(fechaKey => {
         const turno = datosCuadrante[fechaKey];
+        // Aseguramos que el turno tenga el año correctamente comparado
         if (!turno || turno.y !== year) return;
 
         // Comprobamos si esta fecha cae en un periodo de vacaciones del año actual
