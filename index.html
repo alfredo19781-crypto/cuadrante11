@@ -483,6 +483,7 @@ function calcularAsuntosPropios(trienios) {
     return 6 + adicionales; // Sumamos la base de 6
 }
 function calcularTotales(user, year) {
+  console.log("Datos del usuario:", user); // Mira esto en la consola F12
     // 1. Filtramos turnos del año actual
     const turnosDelAnio = (user.turnos || []).filter(t => t && t.y === year);
     
