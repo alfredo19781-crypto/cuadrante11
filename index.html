@@ -446,6 +446,7 @@
       const [textoExportado, setTextoExportado] = useState("");
       const [tempTipo12h, setTempTipo12h] = useState("D");
       const [menuActivo, setMenuActivo] = useState("cuadrante");
+      const [mesActual, setMesActual] = React.useState(new Date().getMonth());
 
       // Carga unificada de datos desde LocalStorage
       const [user, setUser] = useState(() => {
@@ -772,12 +773,31 @@
             <button className="btn-text" onClick={() => cambiarAnio(1)}>Siguiente <i className="fa-solid fa-chevron-right"></i></button>
           </div>
 
-          {/* --- CONTENIDO --- */}
-          {menuActivo === "cuadrante" && (
-            <>
-              {Array.from({length:12}, (_, i) => renderMes(i))}
-            </>
-          )}
+         {/* --- CONTENIDO --- */}
+{menuActivo === "cuadrante" && (
+  <div className="vista-mes-unico">
+    <div className="year-controls" style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px'}}>
+      <button className="btn-text" onClick={() => {
+        let nuevoMes = mesActual - 1;
+        let nuevoAnio = year;
+        if (nuevoMes < 0) { nuevoMes = 11; nuevoAnio -= 1; }
+        setMesActual(nuevoMes);
+        setYear(nuevoAnio);
+      }}><i className="fa-solid fa-chevron-left"></i></button>
+
+      <span className="year-display">{MESES_NOM[mesActual]} {year}</span>
+
+      <button className="btn-text" onClick={() => {
+        let nuevoMes = mesActual + 1;
+        let nuevoAnio = year;
+        if (nuevoMes > 11) { nuevoMes = 0; nuevoAnio += 1; }
+        setMesActual(nuevoMes);
+        setYear(nuevoAnio);
+      }}><i className="fa-solid fa-chevron-right"></i></button>
+    </div>
+    {renderMes(mesActual)}
+  </div>
+)}
 
    {menuActivo === "bolsas" && (
   <div style={{animation: 'fadeIn 0.2s ease-out'}}>
