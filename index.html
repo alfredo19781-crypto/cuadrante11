@@ -448,11 +448,13 @@
     }
     // ... (código existente de calcularDiferenciaHoras)
 
-   function calcularJornadasReales(anioIngreso) {
+  function calcularJornadasReales(ingreso) {
     const anioActual = new Date().getFullYear();
-    const annosServicio = anioActual - anioIngreso;
-    const baseJornadas = 193;
+    const annosServicio = anioActual - parseInt(ingreso);
     
+    console.log("Año ingreso:", ingreso, "Años servicio:", annosServicio); // Esto te dirá qué está calculando
+    
+    let baseJornadas = 193;
     let adicionales = 0;
     
     if (annosServicio >= 30) adicionales = 4;
