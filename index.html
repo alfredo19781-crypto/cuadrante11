@@ -482,32 +482,37 @@ function calcularAsuntosPropios(trienios) {
     
     return 6 + adicionales; // Sumamos la base de 6
 }
-function calcularTotales(user, year) {
+
+  function calcularTotales(user, year) {
     const datosCuadrante = user.cuadrante || {};
     const periodosVacaciones = (user.periodos || []).filter(p => p && p.y === year && !p.esProrroga);
     
     let totalJornadas = 0;
 
-   Object.keys(datosCuadrante).forEach(fechaKey => {
+    Object.keys(datosCuadrante).forEach(fechaKey => {
         const turno = datosCuadrante[fechaKey];
-        if (!turno || parseInt(turno.y) !== year) return;
-
-        // Comprobamos si esta fecha cae en un periodo de vacaciones del año actual
-        const [y, m, d] = fechaKey.split('-').map(Number);
-        const fechaActual = new Date(y, m - 1, d);
         
-        const esVacacion = periodosVacaciones.some(p => {
-            const start = new Date(p.y, p.mIni - 1, p.dIni);
-            const end = new Date(p.y, p.mFin - 1, p.dFin);
-            return fechaActual >= start && fechaActual <= end;
-        });
+        // Vamos a ser más flexibles: si el año existe, lo comprobamos
+        // Si turno.y no existe, intentamos extraerlo de la fechaKey
+        const anioTurno = turno.y ? parseInt(turno.y) : parseInt(fechaKey.split('-')[0]);
 
-        // Solo sumamos si NO es vacación
-        if (!esVacacion) {
-            if (turno.tipo === '24h' || turno.tipo === 'G-24h') {
-                totalJornadas += 3;
-            } else if (turno.tipo === '12h-D' || turno.tipo === '12h-N' || turno.tipo === 'G-12h') {
-                totalJornadas += 1.5;
+        if (anioTurno === year) {
+            // Comprobamos vacaciones
+            const [y, m, d] = fechaKey.split('-').map(Number);
+            const fechaActual = new Date(y, m - 1, d);
+            
+            const esVacacion = periodosVacaciones.some(p => {
+                const start = new Date(p.y, p.mIni - 1, p.dIni);
+                const end = new Date(p.y, p.mFin - 1, p.dFin);
+                return fechaActual >= start && fechaActual <= end;
+            });
+
+            if (!esVacacion) {
+                if (turno.tipo === '24h' || turno.tipo === 'G-24h') {
+                    totalJornadas += 3;
+                } else if (turno.tipo === '12h-D' || turno.tipo === '12h-N' || turno.tipo === 'G-12h') {
+                    totalJornadas += 1.5;
+                }
             }
         }
     });
