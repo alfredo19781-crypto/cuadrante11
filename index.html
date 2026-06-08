@@ -449,18 +449,21 @@
     // ... (código existente de calcularDiferenciaHoras)
 
 function calcularAsuntosPropios(trienios) {
-    if (trienios < 6) return 0;
-    if (trienios === 6 || trienios === 7) return 2;
-    if (trienios === 8) return 3;
-    if (trienios === 9) return 4;
-    if (trienios === 10) return 5;
-    if (trienios === 11) return 6;
-    if (trienios === 12) return 7;
-    if (trienios === 13) return 8;
-    if (trienios === 14) return 9;
-    if (trienios === 15) return 10;
-    if (trienios >= 16) return 11;
-    return 0;
+    let adicionales = 0;
+    
+    if (trienios < 6) adicionales = 0;
+    else if (trienios === 6 || trienios === 7) adicionales = 2;
+    else if (trienios === 8) adicionales = 3;
+    else if (trienios === 9) adicionales = 4;
+    else if (trienios === 10) adicionales = 5;
+    else if (trienios === 11) adicionales = 6;
+    else if (trienios === 12) adicionales = 7;
+    else if (trienios === 13) adicionales = 8;
+    else if (trienios === 14) adicionales = 9;
+    else if (trienios === 15) adicionales = 10;
+    else if (trienios >= 16) adicionales = 11;
+    
+    return 6 + adicionales; // Sumamos la base de 6
 }
 
     function App() {
