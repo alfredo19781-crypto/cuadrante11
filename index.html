@@ -487,11 +487,15 @@ function calcularTotales(user, year) {
     const periodosVacaciones = (user.periodos || []).filter(p => p && p.y === year && !p.esProrroga);
     
     let totalJornadas = 0;
+    console.log("Total días en cuadrante:", Object.keys(datosCuadrante).length);
 
     Object.keys(datosCuadrante).forEach(fechaKey => {
         const turno = datosCuadrante[fechaKey];
         // Aseguramos que el turno tenga el año correctamente comparado
-        if (!turno || turno.y !== year) return;
+        // Debug: mira qué tipo de turno está leyendo
+        if (turno) {
+            console.log("Revisando fecha:", fechaKey, "Tipo:", turno.tipo, "Año:", turno.y);
+        }
 
         // Comprobamos si esta fecha cae en un periodo de vacaciones del año actual
         const [y, m, d] = fechaKey.split('-').map(Number);
