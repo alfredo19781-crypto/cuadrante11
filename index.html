@@ -538,7 +538,7 @@ function calcularAsuntosPropios(trienios) {
           try { return JSON.parse(local); } catch(e) { console.error(e); }
         }
         return {
-          nombre: "Agente de Guardia",
+          nombre: "CUADRANTE ANUAL",
           ingreso: 2008,
           cuadrante: {}, 
           periodos: [],  
@@ -773,7 +773,7 @@ function calcularAsuntosPropios(trienios) {
           const currentFecha = new Date(year, mIdx, d);
           const esFinde = currentFecha.getDay() === 0 || currentFecha.getDay() === 6;
 
-          const tInfo = user.cuadrante[dK];
+          const tInfo = user.cuadrante ? user.cuadrante[dK] : null;
           let turnoBadge = null;
           if (tInfo) {
             if (tInfo.tipo === "24h") turnoBadge = <span className="badge-turno t-24h">24h</span>;
