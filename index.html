@@ -483,25 +483,24 @@ function calcularAsuntosPropios(trienios) {
     return 6 + adicionales; // Sumamos la base de 6
 }
 function calcularTotales(user, year) {
-  console.log("Datos del usuario:", user); // Mira esto en la consola F12
-    // 1. Filtramos turnos del año actual
-    const turnosDelAnio = (user.turnos || []).filter(t => t && t.y === year);
-    
-    // 2. Filtramos vacaciones del año actual (excluyendo las "anuladas/prórroga")
-    const periodosVacaciones = (user.periodos || []).filter(p => p && p.y === year && !p.esProrroga);
-    
+    // Accedemos a user.cuadrante. 
+    // Suponiendo que 'cuadrante' es un objeto donde las claves son fechas o IDs 
+    // y los valores son los objetos con la propiedad 'tipo'
+    const datosCuadrante = user.cuadrante || {};
     let totalJornadas = 0;
-    
-    // 3. Suma de jornadas según tipo
-    turnosDelAnio.forEach(t => {
-        if (t.tipo === '24h' || t.tipo === 'G-24h') totalJornadas += 3;
-        else if (t.tipo === '12h-D' || t.tipo === '12h-N' || t.tipo === 'G-12h') totalJornadas += 1.5;
+
+    // Recorremos los elementos dentro de user.cuadrante
+    Object.values(datosCuadrante).forEach(item => {
+        // Filtramos solo los del año actual (suponiendo que 'y' es el año)
+        if (item && item.y === year) {
+            if (item.tipo === '24h' || item.tipo === 'G-24h') {
+                totalJornadas += 3;
+            } else if (item.tipo === '12h-D' || item.tipo === '12h-N' || item.tipo === 'G-12h') {
+                totalJornadas += 1.5;
+            }
+        }
     });
 
-    // Opcional: Aquí restaríamos las jornadas coincidentes con vacaciones si tuvieras 
-    // una función que detecte la coincidencia de fechas. 
-    // De momento, el total será la suma de turnos.
-    
     return totalJornadas;
 }
 
