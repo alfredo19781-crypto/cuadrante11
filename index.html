@@ -482,6 +482,27 @@ function calcularAsuntosPropios(trienios) {
     
     return 6 + adicionales; // Sumamos la base de 6
 }
+function calcularTotales(user, year) {
+    // 1. Filtramos turnos del año actual
+    const turnosDelAnio = (user.turnos || []).filter(t => t && t.y === year);
+    
+    // 2. Filtramos vacaciones del año actual (excluyendo las "anuladas/prórroga")
+    const periodosVacaciones = (user.periodos || []).filter(p => p && p.y === year && !p.esProrroga);
+    
+    let totalJornadas = 0;
+    
+    // 3. Suma de jornadas según tipo
+    turnosDelAnio.forEach(t => {
+        if (t.tipo === '24h' || t.tipo === 'G-24h') totalJornadas += 3;
+        else if (t.tipo === '12h-D' || t.tipo === '12h-N' || t.tipo === 'G-12h') totalJornadas += 1.5;
+    });
+
+    // Opcional: Aquí restaríamos las jornadas coincidentes con vacaciones si tuvieras 
+    // una función que detecte la coincidencia de fechas. 
+    // De momento, el total será la suma de turnos.
+    
+    return totalJornadas;
+}
 
     function App() {
       const [year, setYear] = useState(new Date().getFullYear());
@@ -828,6 +849,22 @@ function calcularAsuntosPropios(trienios) {
     </button>
   </div>
 </header>
+{/* --- TARJETAS DE CONTROL --- */}
+<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+  {/* Tarjeta Jornadas Totales */}
+  <div className="card" style={{ padding: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'center' }}>
+    <h3 style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '5px' }}>JORNADAS TOTALES</h3>
+    <p style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{calcularTotales(user, year)}</p>
+  </div>
+
+  {/* Tarjeta Excesos */}
+  <div className="card" style={{ padding: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'center' }}>
+    <h3 style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '5px' }}>EXCESOS</h3>
+    <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--danger)' }}>
+      {(calcularTotales(user, year) - calcularJornadasReales(user.ingreso)).toFixed(1)}
+    </p>
+  </div>
+</div>
 
           {/* --- NAVEGACIÓN ANUAL --- */}
           <div className="year-controls">
