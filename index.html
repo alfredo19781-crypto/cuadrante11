@@ -484,19 +484,31 @@ function calcularAsuntosPropios(trienios) {
 }
 function calcularTotales(user, year) {
   console.log("Datos del usuario:", user); // Mira esto en la consola F12
-    // Accedemos a user.cuadrante. 
-    // Suponiendo que 'cuadrante' es un objeto donde las claves son fechas o IDs 
-    // y los valores son los objetos con la propiedad 'tipo'
+   function calcularTotales(user, year) {
     const datosCuadrante = user.cuadrante || {};
+    const periodosVacaciones = (user.periodos || []).filter(p => p && p.y === year && !p.esProrroga);
+    
     let totalJornadas = 0;
 
-    // Recorremos los elementos dentro de user.cuadrante
-    Object.values(datosCuadrante).forEach(item => {
-        // Filtramos solo los del año actual (suponiendo que 'y' es el año)
-        if (item && item.y === year) {
-            if (item.tipo === '24h' || item.tipo === 'G-24h') {
+    Object.keys(datosCuadrante).forEach(fechaKey => {
+        const turno = datosCuadrante[fechaKey];
+        if (!turno || turno.y !== year) return;
+
+        // Comprobamos si esta fecha cae en un periodo de vacaciones del año actual
+        const [y, m, d] = fechaKey.split('-').map(Number);
+        const fechaActual = new Date(y, m - 1, d);
+        
+        const esVacacion = periodosVacaciones.some(p => {
+            const start = new Date(p.y, p.mIni - 1, p.dIni);
+            const end = new Date(p.y, p.mFin - 1, p.dFin);
+            return fechaActual >= start && fechaActual <= end;
+        });
+
+        // Solo sumamos si NO es vacación
+        if (!esVacacion) {
+            if (turno.tipo === '24h' || turno.tipo === 'G-24h') {
                 totalJornadas += 3;
-            } else if (item.tipo === '12h-D' || item.tipo === '12h-N' || item.tipo === 'G-12h') {
+            } else if (turno.tipo === '12h-D' || turno.tipo === '12h-N' || turno.tipo === 'G-12h') {
                 totalJornadas += 1.5;
             }
         }
@@ -861,9 +873,13 @@ function calcularTotales(user, year) {
   {/* Tarjeta Excesos */}
   <div className="card" style={{ padding: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'center' }}>
     <h3 style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '5px' }}>EXCESOS</h3>
-    <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--danger)' }}>
-      {(calcularTotales(user, year) - calcularJornadasReales(user.ingreso)).toFixed(1)}
-    </p>
+    <p style={{ 
+    fontSize: '1.2rem', 
+    fontWeight: 'bold', 
+    color: (calcularTotales(user, year) - calcularJornadasReales(user.ingreso)) < 0 ? '#EF4444' : '#10B981' 
+}}>
+  {(calcularTotales(user, year) - calcularJornadasReales(user.ingreso)).toFixed(1)}
+</p>
   </div>
 </div>
 
