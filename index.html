@@ -446,6 +446,22 @@
       }
       return parseFloat((difMinutos / 60).toFixed(2));
     }
+    // ... (código existente de calcularDiferenciaHoras)
+
+function calcularAsuntosPropios(trienios) {
+    if (trienios < 6) return 0;
+    if (trienios === 6 || trienios === 7) return 2;
+    if (trienios === 8) return 3;
+    if (trienios === 9) return 4;
+    if (trienios === 10) return 5;
+    if (trienios === 11) return 6;
+    if (trienios === 12) return 7;
+    if (trienios === 13) return 8;
+    if (trienios === 14) return 9;
+    if (trienios === 15) return 10;
+    if (trienios >= 16) return 11;
+    return 0;
+}
 
     function App() {
       const [year, setYear] = useState(new Date().getFullYear());
@@ -771,15 +787,23 @@
         <div className="container">
           
           {/* --- HEADER --- */}
-          <header>
-            <div className="user-info">
-              <h1>{user.nombre}</h1>
-              <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
-            </div>
-            <div className="header-actions">
-              <button className="btn-icon" onClick={() => setShowGear(true)}><i className="fa-solid fa-gear"></i></button>
-            </div>
-          </header>
+         <header>
+  <div className="user-info">
+    <h1>{user.nombre}</h1>
+    <p>
+      Trienios: {calc.trienios} (Ingreso: {user.ingreso})
+    </p>
+    {/* Nueva línea de Asuntos Propios */}
+    <p style={{ marginTop: '5px', color: '#60A5FA', fontWeight: 'bold' }}>
+      Asuntos Propios: {calcularAsuntosPropios(calc.trienios)} días
+    </p>
+  </div>
+  <div className="header-actions">
+    <button className="btn-icon" onClick={() => setShowGear(true)}>
+      <i className="fa-solid fa-gear"></i>
+    </button>
+  </div>
+</header>
 
           {/* --- NAVEGACIÓN ANUAL --- */}
           <div className="year-controls">
