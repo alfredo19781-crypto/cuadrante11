@@ -723,9 +723,18 @@
               {turnoBadge}
               
               {tieneMov && movsDelDia.map(m => (
-                <div key={m.id} className="mov-hours-label">
-                  {m.horaInicio}-{m.horaFin} ({calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h)
-                </div>
+               <div key={m.id} className="mov-hours-label" style={{ 
+  fontSize: "0.65rem", 
+  display: "flex", 
+  flexDirection: "column", 
+  alignItems: "center",
+  lineHeight: "1.1" 
+}}>
+  <span>{m.horaInicio} - {m.horaFin}</span>
+  <span style={{ fontWeight: 'bold' }}>
+    ({calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h)
+  </span>
+</div>
               ))}
 
               <div className="indicator-container">
