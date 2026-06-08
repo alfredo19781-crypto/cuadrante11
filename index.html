@@ -199,13 +199,13 @@
     .days-grid {
     /* Esto es lo más importante: evita que las columnas se reduzcan a menos de 40px */
     display: grid;
-    grid-template-columns: repeat(7, minmax(40px, 1fr));
+    grid-template-columns: repeat(7, minmax(80px, 1fr));
     
     /* Aseguramos que el contenido no se desborde */
     width: 100%;
     
     /* Obligamos a que, si es muy estrecho, el contenedor tenga un ancho mínimo */
-    min-width: 550px; 
+    min-width: max-content;
 }
 
     .day-name {
