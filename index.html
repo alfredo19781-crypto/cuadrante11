@@ -448,19 +448,18 @@
     }
     // ... (código existente de calcularDiferenciaHoras)
 
-    function calcularJornadasReales(trienios) {
+   function calcularJornadasReales(anioIngreso) {
+    const anioActual = new Date().getFullYear();
+    const annosServicio = anioActual - anioIngreso;
     const baseJornadas = 193;
     
-    // Calculamos los días adicionales de vacaciones según la tabla de años de servicio
-    // Nota: 1 trienio = 3 años. 
-    // 15 años = 5 trienios, 20 años = 7 trienios, 25 años = 9 trienios, 30 años = 10 trienios.
     let adicionales = 0;
-    if (trienios >= 10) adicionales = 4;
-    else if (trienios >= 9) adicionales = 3;
-    else if (trienios >= 7) adicionales = 2;
-    else if (trienios >= 5) adicionales = 1;
     
-    // El máximo de días adicionales según la imagen es la suma de los 4 niveles (1+1+1+1 = 4 días)
+    if (annosServicio >= 30) adicionales = 4;
+    else if (annosServicio >= 25) adicionales = 3;
+    else if (annosServicio >= 20) adicionales = 2;
+    else if (annosServicio >= 15) adicionales = 1;
+    
     return baseJornadas - adicionales;
 }
 
@@ -812,9 +811,9 @@ function calcularAsuntosPropios(trienios) {
     <p>
       Trienios: {calc.trienios} (Ingreso: {user.ingreso})
     </p>
-    {/* Nueva línea de Jornadas Anuales */}
+    {/* Llamamos a la función con el año de ingreso */}
     <p style={{ marginTop: '5px', fontWeight: 'bold', color: '#10B981' }}>
-      Jornadas Anuales: {calcularJornadasReales(calc.trienios)} jornadas
+      Jornadas Anuales: {calcularJornadasReales(user.ingreso)} jornadas
     </p>
     {/* Nueva línea de Asuntos Propios */}
     <p style={{ marginTop: '5px', color: '#60A5FA', fontWeight: 'bold' }}>
