@@ -196,16 +196,16 @@
       justify-content: space-between;
     }
 
-    .days-grid {
-    /* Esto es lo más importante: evita que las columnas se reduzcan a menos de 40px */
+   .days-grid {
     display: grid;
-    grid-template-columns: repeat(7, minmax(80px, 1fr));
-    
-    /* Aseguramos que el contenido no se desborde */
-    width: 100%;
-    
-    /* Obligamos a que, si es muy estrecho, el contenedor tenga un ancho mínimo */
-    min-width: max-content;
+    grid-template-columns: repeat(7, 1fr); /* 7 columnas exactas */
+    width: 100%;                          /* Forzamos al 100% de la pantalla */
+    table-layout: fixed;                  /* Fuerza a las celdas a no ensancharse */
+}
+
+.day-cell {
+    overflow: hidden; /* Esto evita que una celda "empuje" a la vecina */
+    text-align: center;
 }
 
     .day-name {
@@ -283,10 +283,14 @@
     .ind-mov { background: #8B5CF6; }
 
     .mov-hours-label {
-      font-size: 8px;
-      font-weight: bold;
+      display: flex;
+    flex-direction: column; /* Apila los elementos verticalmente */
+    align-items: center;    /* Centra el texto */
+    line-height: 0.9;       /* Reduce el espacio entre líneas */
+    font-size: 0.6rem;      /* Tamaño legible pero pequeño */
+    word-break: break-all;  /* Asegura que no se desborde */
       color: #A78BFA;
-      margin-top: 1px;
+      
     }
 
     /* --- MODALES --- */
@@ -730,15 +734,11 @@
               {turnoBadge}
               
               {tieneMov && movsDelDia.map(m => (
-               <div key={m.id} className="mov-hours-label" style={{ 
-  fontSize: "0.60rem", 
-  display: "flex", 
-  flexDirection: "column", 
-  alignItems: "center",
-  lineHeight: "1.1" 
-}}>
-  <span>{m.horaInicio} - {m.horaFin}</span>
-  <span style={{ fontWeight: 'bold' }}>
+         <div key={m.id} className="mov-hours-label">
+  <span style={{ fontSize: '0.6rem' }}>
+    {m.horaInicio} <br /> {m.horaFin}
+  </span>
+  <span style={{ fontSize: '0.55rem', marginTop: '2px' }}>
     ({calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h)
   </span>
 </div>
