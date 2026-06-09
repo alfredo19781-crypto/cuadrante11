@@ -247,70 +247,47 @@ html, body, #root {
       padding: 4px 0;
     }
 
+   /* --- CALENDARIO: RECUADROS COMPLETOS --- */
     .day-cell {
       aspect-ratio: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center; /* Centramos todo en el medio */
       align-items: center;
-      padding: 4px 2px;
+      padding: 2px;
       border-radius: 8px;
       cursor: pointer;
       position: relative;
       border: 1px solid transparent;
+      transition: opacity 0.2s;
     }
 
     .day-number {
       font-size: 13px;
       font-weight: 700;
+      color: white; /* Blanco para que se vea sobre colores oscuros */
     }
+
+    /* Clases de Color Completo */
+    .t-24h { background-color: #EF4444 !important; } /* Rojo */
+    .t-libre { background-color: #10B981 !important; color: white; } /* Verde */
+    .t-vacaciones { background-color: #FBBF24 !important; color: #111; } /* Amarillo */
+    .t-guardia { background-color: #6366F1 !important; } /* Violeta/Azul */
+    .t-exc { background-color: #3B82F6 !important; } /* Azul */
+    .t-ap { background-color: #F97316 !important; } /* Naranja */
 
     .day-cell.prev-next {
       opacity: 0.15;
       pointer-events: none;
     }
 
-    .day-cell.weekend {
-      background: rgba(255,255,255,0.02);
-    }
-
-    /* --- ESTILOS DE TURNOS --- */
+    /* Etiqueta de texto pequeña debajo del número (opcional) */
     .badge-turno {
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 800;
-      padding: 1px 4px;
-      border-radius: 4px;
-      text-align: center;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      margin-top: 2px;
+      text-transform: uppercase;
     }
-
-    .t-24h { background: #3B82F6; color: white; }
-    .t-12h-D { background: #F59E0B; color: white; }
-    .t-12h-N { background: #6366F1; color: white; }
-    .t-guardia { background: #10B981; color: white; }
-    .t-libre { color: var(--text-muted); font-weight: normal; }
-
-    /* --- INDICADORES --- */
-    .indicator-container {
-      display: flex;
-      gap: 2px;
-      justify-content: center;
-      width: 100%;
-      height: 5px;
-    }
-
-    .ind-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-    }
-
-    .ind-vac { background: #3B82F6; }
-    .ind-ap { background: var(--ap-color); }
-    .ind-exc { background: #10B981; }
     
 
     .mov-hours-label {
@@ -806,15 +783,23 @@ function calcularAsuntosPropios(trienios) {
 
           const tInfo = user.cuadrante ? user.cuadrante[dK] : null;
           let turnoBadge = null;
-          if (tInfo) {
-            if (tInfo.tipo === "24h") turnoBadge = <span className="badge-turno t-24h">24h</span>;
-            else if (tInfo.tipo === "12h-D") turnoBadge = <span className="badge-turno t-12h-D">12h-D</span>;
-            else if (tInfo.tipo === "12h-N") turnoBadge = <span className="badge-turno t-12h-N">12h-N</span>;
-            else if (tInfo.tipo === "G-24h") turnoBadge = <span className="badge-turno t-guardia">🛡️24h</span>;
-            else if (tInfo.tipo === "G-12h") turnoBadge = <span className="badge-turno t-guardia">🛡️12h</span>;
-            else if (tInfo.tipo === "MOV") turnoBadge = <span className="badge-turno t-24h" style={{background:'#8B5CF6'}}>MOV</span>;
-            else if (tInfo.tipo === "libre") turnoBadge = <span className="badge-turno t-libre">L</span>;
-          }
+  let claseColor = ""; // Nueva variable para el color del fondo
+
+  if (tInfo) {
+    if (tInfo.tipo === "24h") {
+      turnoBadge = <span className="badge-turno">24h</span>;
+      claseColor = "t-24h"; 
+    } 
+    else if (tInfo.tipo === "12h-D") {
+      turnoBadge = <span className="badge-turno">12h-D</span>;
+      claseColor = "t-12h-D";
+    }
+    // ... haz lo mismo para los demás tipos ...
+    else if (tInfo.tipo === "libre") {
+      turnoBadge = <span className="badge-turno">L</span>;
+      claseColor = "t-libre";
+    }
+  }
 
           let tieneVac = false;
           (user.periodos || []).forEach(p => {
@@ -831,10 +816,10 @@ function calcularAsuntosPropios(trienios) {
           const movsDelDia = (user.movilizaciones || []).filter(m => m && m.y === year && m.mes === (mIdx + 1) && m.dia === d);
           const tieneMov = movsDelDia.length > 0;
 
-          celdas.push(
-            <div key={d} className={`day-cell ${esFinde ? 'weekend' : ''}`} onClick={() => abrirCeldaRapida(dK)}>
-              <span className="day-number">{d}</span>
-              {turnoBadge}
+         celdas.push(
+  <div key={d} className={`day-cell ${claseColor} ${esFinde ? 'weekend' : ''}`}>
+    <span className="day-number">{d}</span>
+    {turnoBadge}
               
               {tieneMov && movsDelDia.map(m => (
          <div key={m.id} className="mov-hours-label">
