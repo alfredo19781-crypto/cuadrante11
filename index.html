@@ -943,9 +943,7 @@ function calcularAsuntosPropios(trienios) {
         {renderMes(mesActual)}
       </div>
     )}
-  </div>
-</div>
-   {menuActivo === "bolsas" && (
+{menuActivo === "bolsas" && (
   <div style={{animation: 'fadeIn 0.2s ease-out'}}>
     <h2 style={{fontSize:'16px', marginBottom:'12px', fontWeight:'800'}}>Resumen Anual ({year})</h2>
     <div className="summary-grid">
@@ -980,6 +978,9 @@ function calcularAsuntosPropios(trienios) {
     </div>
   </div>
 )}
+  </div>
+</div>
+   
 
           {/* --- MENÚ INFERIOR --- */}
           <div className="bottom-menu">
