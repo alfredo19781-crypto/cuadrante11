@@ -527,7 +527,10 @@ function calcularAsuntosPropios(trienios) {
 
     return totalJornadas;
 }
-
+const getDiasEnMes = (mes, year) => {
+  // Retorna el último día del mes (28, 29, 30 o 31)
+  return new Date(year, mes, 0).getDate();
+};
     function App() {
       const [year, setYear] = useState(new Date().getFullYear());
       const [showGear, setShowGear] = useState(false);
@@ -1083,41 +1086,49 @@ function calcularAsuntosPropios(trienios) {
                   <button className="btn-primary" onClick={aplicarPatron} style={{background:'#1E293B', marginTop:'8px'}}>CALCULAR ANUAL</button>
                 </div>
 
-                {/* --- SECCIÓN VACACIONES --- */}
-                {tabActiva === 'Vacaciones' && (
-                <div className="card">
-                  <label>🏖️ ASIGNAR VACACIONES PERIODO</label>
-                  {(user.periodos || []).filter(p => p && p.y === year).map(p => (
-                    <div key={p.id} className="row-config">
-                      <div className="inputs-group">
-                        <select value={p.mIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mIni:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m.slice(0,3)}</option>)}
-                        </select>
-                        <select value={p.dIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dIni:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
-                        </select>
-                        <span>al</span>
-                        <select value={p.mFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mFin:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m.slice(0,3)}</option>)}
-                        </select>
-                        <select value={p.dFin || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dFin:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Día</option>{Array.from({length:31},(_,i)=>i+1).map(d=><option key={d} value={d}>{d}</option>)}
-                        </select>
-                        <button className={`toggle-btn ${p.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, esProrroga:!x.esProrroga}:x)})}>ANUL</button>
-                      </div>
-                      <button className="btn-del" onClick={() => setUser({...user, periodos: user.periodos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
-                    </div>
-                  ))}
-                  <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null, dFin:null, mFin:null, esProrroga:false}]})}>+ Añadir Periodo</button>
-                </div>
-                )}
+             {/* --- SECCIÓN ASUNTOS PROPIOS --- */}
+{tabActiva === 'Asuntos Propios' && (
+  <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
+    <label>🟡 ASUNTOS PROPIOS</label>
+    {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
+      // CORRECCIÓN: usamos apItem.mes en lugar de exc.mes
+      const diasDelMes = apItem.mes ? getDiasEnMes(apItem.mes, year) : 31;
+      
+      return (
+        <div key={apItem.id} className="row-config">
+          <div className="inputs-group">
+            <select value={apItem.dia || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
+              <option value="" disabled>Día</option>
+              {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            
+            <select value={apItem.mes || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+              <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+            </select>
+            
+            <select value={apItem.turno || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, turno:e.target.value}:x)})} style={{width:'65px'}}>
+              <option value="-">-</option>
+              {["M", "T", "N"].map(t => {
+                const disponible = turnosDisponibles.includes(t) || apItem.turno === t;
+                return <option key={t} value={t} disabled={!disponible}>{t} {!disponible ? "🚫" : ""}</option>;
+              })}
+            </select>
+            <button className={`toggle-btn ${apItem.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, esProrroga:!x.esProrroga}:x)})}>ANUL</button>
+          </div>
+          <button className="btn-del" onClick={() => setUser({...user, ap: user.ap.filter(x => x.id !== apItem.id)})}>🗑️ Borrar</button>
+        </div>
+      );
+    })}
+    <button className="btn-primary" style={{background:'var(--ap-color)', color:'var(--dark)'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ Añadir AP</button>
+  </div>
+)}
 
                 {/* --- SECCIÓN EXCESOS --- */}
                  {tabActiva === 'Excesos' && (
                 <div className="card" style={{borderTop:'3px solid #22C55E'}}>
                   <label>🟢 EXCESOS DE JORNADA</label>
                   {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
-                    const turnosDisponibles = obtenerTurnosDisponibles(exc.id, exc.y, exc.mes, exc.dia);
+                    const diasDelMes = exc.mes ? getDiasEnMes(exc.mes, year) : 31;
                     return (
                       <div key={exc.id} className="row-config">
                         <div className="inputs-group">
@@ -1147,7 +1158,7 @@ function calcularAsuntosPropios(trienios) {
                 <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
                   <label>🟡 ASUNTOS PROPIOS</label>
                   {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
-                    const turnosDisponibles = obtenerTurnosDisponibles(apItem.id, apItem.y, apItem.mes, apItem.dia);
+                    const diasDelMes = exc.mes ? getDiasEnMes(exc.mes, year) : 31;
                     return (
                       <div key={apItem.id} className="row-config">
                         <div className="inputs-group">
