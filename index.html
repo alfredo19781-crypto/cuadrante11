@@ -43,6 +43,29 @@
       --ap-color: #FBBF24;
       --dark: #0F172A;
     }
+    /* --- NUEVA ESTRUCTURA PARA EL CALENDARIO --- */
+.app-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.header-section {
+  flex-shrink: 0;
+}
+
+.calendar-section {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.vista-mes-unico {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
 
     * {
       box-sizing: border-box;
@@ -842,7 +865,7 @@ function calcularAsuntosPropios(trienios) {
       return (
         <div className="container">
           
-   {/* --- ESTRUCTURA CORREGIDA --- */}
+   {/* --- ESTRUCTURA CORREGIDA HEADER --- */}
 <div className="app-layout">
   <div className="header-section">
     <header>
