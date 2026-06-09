@@ -842,81 +842,78 @@ function calcularAsuntosPropios(trienios) {
       return (
         <div className="container">
           
-          {/* --- HEADER --- */}
-         <header>
-  <div className="user-info">
-    <h1>{user.nombre}</h1>
-    <p>
-      Trienios: {calc.trienios} (Ingreso: {user.ingreso})
-    </p>
-    {/* Llamamos a la función con el año de ingreso */}
-    <p style={{ marginTop: '5px', fontWeight: 'bold', color: '#10B981' }}>
-      Jornadas Anuales: {calcularJornadasReales(user.ingreso)} jornadas
-    </p>
-    {/* Nueva línea de Asuntos Propios */}
-    <p style={{ marginTop: '5px', color: '#60A5FA', fontWeight: 'bold' }}>
-      Asuntos Propios: {calcularAsuntosPropios(calc.trienios)} días
-    </p>
-  </div>
-  <div className="header-actions">
-    <button className="btn-icon" onClick={() => setShowGear(true)}>
-      <i className="fa-solid fa-gear"></i>
-    </button>
-  </div>
-</header>
-{/* --- TARJETAS DE CONTROL --- */}
-<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
-  {/* Tarjeta Jornadas Totales */}
-  <div className="card" style={{ padding: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'center' }}>
-    <h3 style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '5px' }}>JORNADAS TOTALES</h3>
-    <p style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{calcularTotales(user, year)}</p>
-  </div>
+   {/* --- ESTRUCTURA CORREGIDA --- */}
+<div className="app-layout">
+  <div className="header-section">
+    <header>
+      <div className="user-info">
+        <h1>{user.nombre}</h1>
+        <p>Trienios: {calc.trienios} (Ingreso: {user.ingreso})</p>
+        <p style={{ marginTop: '5px', fontWeight: 'bold', color: '#10B981' }}>
+          Jornadas Anuales: {calcularJornadasReales(user.ingreso)} jornadas
+        </p>
+        <p style={{ marginTop: '5px', color: '#60A5FA', fontWeight: 'bold' }}>
+          Asuntos Propios: {calcularAsuntosPropios(calc.trienios)} días
+        </p>
+      </div>
+      <div className="header-actions">
+        <button className="btn-icon" onClick={() => setShowGear(true)}>
+          <i className="fa-solid fa-gear"></i>
+        </button>
+      </div>
+    </header>
 
-  {/* Tarjeta Excesos */}
-  <div className="card" style={{ padding: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'center' }}>
-    <h3 style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '5px' }}>EXCESOS</h3>
-    <p style={{ 
-    fontSize: '1.2rem', 
-    fontWeight: 'bold', 
-    color: (calcularTotales(user, year) - calcularJornadasReales(user.ingreso)) < 0 ? '#EF4444' : '#10B981' 
-}}>
-  {(calcularTotales(user, year) - calcularJornadasReales(user.ingreso)).toFixed(1)}
-</p>
+    {/* --- TARJETAS DE CONTROL --- */}
+    <div className="grid-tarjetas" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '15px' }}>
+      <div className="card" style={{ padding: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'center' }}>
+        <h3 style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '5px' }}>JORNADAS TOTALES</h3>
+        <p style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{calcularTotales(user, year)}</p>
+      </div>
+
+      <div className="card" style={{ padding: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px', textAlign: 'center' }}>
+        <h3 style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginBottom: '5px' }}>EXCESOS</h3>
+        <p style={{ fontSize: '1.2rem', fontWeight: 'bold', color: (calcularTotales(user, year) - calcularJornadasReales(user.ingreso)) < 0 ? '#EF4444' : '#10B981' }}>
+          {(calcularTotales(user, year) - calcularJornadasReales(user.ingreso)).toFixed(1)}
+        </p>
+      </div>
+    </div>
+
+    {/* --- NAVEGACIÓN ANUAL --- */}
+    <div className="year-controls">
+      <button className="btn-text" onClick={() => cambiarAnio(-1)}><i className="fa-solid fa-chevron-left"></i> Anterior</button>
+      <span className="year-display">{year}</span>
+      <button className="btn-text" onClick={() => cambiarAnio(1)}>Siguiente <i className="fa-solid fa-chevron-right"></i></button>
+    </div>
+  </div> {/* <-- ¡IMPORTANTE! Cierre de header-section */}
+
+  {/* --- CONTENIDO (CALENDARIO) --- */}
+  <div className="calendar-section">
+    {menuActivo === "cuadrante" && (
+      <div className="vista-mes-unico">
+        <div className="year-controls" style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px'}}>
+          <button className="btn-text" onClick={() => {
+            let nuevoMes = mesActual - 1;
+            let nuevoAnio = year;
+            if (nuevoMes < 0) { nuevoMes = 11; nuevoAnio -= 1; }
+            setMesActual(nuevoMes);
+            setYear(nuevoAnio);
+          }}><i className="fa-solid fa-chevron-left"></i></button>
+
+          <span className="year-display">{MESES_NOM[mesActual]} {year}</span>
+
+          <button className="btn-text" onClick={() => {
+            let nuevoMes = mesActual + 1;
+            let nuevoAnio = year;
+            if (nuevoMes > 11) { nuevoMes = 0; nuevoAnio += 1; }
+            setMesActual(nuevoMes);
+            setYear(nuevoAnio);
+          }}><i className="fa-solid fa-chevron-right"></i></button>
+        </div>
+        {renderMes(mesActual)}
+      </div>
+    )}
   </div>
 </div>
-
-          {/* --- NAVEGACIÓN ANUAL --- */}
-          <div className="year-controls">
-            <button className="btn-text" onClick={() => cambiarAnio(-1)}><i className="fa-solid fa-chevron-left"></i> Anterior</button>
-            <span className="year-display">{year}</span>
-            <button className="btn-text" onClick={() => cambiarAnio(1)}>Siguiente <i className="fa-solid fa-chevron-right"></i></button>
-          </div>
-
-         {/* --- CONTENIDO --- */}
-{menuActivo === "cuadrante" && (
-  <div className="vista-mes-unico">
-    <div className="year-controls" style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'10px'}}>
-      <button className="btn-text" onClick={() => {
-        let nuevoMes = mesActual - 1;
-        let nuevoAnio = year;
-        if (nuevoMes < 0) { nuevoMes = 11; nuevoAnio -= 1; }
-        setMesActual(nuevoMes);
-        setYear(nuevoAnio);
-      }}><i className="fa-solid fa-chevron-left"></i></button>
-
-      <span className="year-display">{MESES_NOM[mesActual]} {year}</span>
-
-      <button className="btn-text" onClick={() => {
-        let nuevoMes = mesActual + 1;
-        let nuevoAnio = year;
-        if (nuevoMes > 11) { nuevoMes = 0; nuevoAnio += 1; }
-        setMesActual(nuevoMes);
-        setYear(nuevoAnio);
-      }}><i className="fa-solid fa-chevron-right"></i></button>
-    </div>
-    {renderMes(mesActual)}
-  </div>
-)}
    {menuActivo === "bolsas" && (
   <div style={{animation: 'fadeIn 0.2s ease-out'}}>
     <h2 style={{fontSize:'16px', marginBottom:'12px', fontWeight:'800'}}>Resumen Anual ({year})</h2>
