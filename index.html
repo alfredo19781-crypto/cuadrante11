@@ -44,6 +44,14 @@
       --dark: #0F172A;
     }
     /* --- NUEVA ESTRUCTURA PARA EL CALENDARIO --- */
+/* --- CONFIGURACIÓN DE PANTALLA FIJA --- */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Esto evita el desplazamiento de toda la página */
+}
+
 .app-layout {
   display: flex;
   flex-direction: column;
@@ -51,14 +59,14 @@
 }
 
 .header-section {
-  flex-shrink: 0;
+  flex-shrink: 0; /* La cabecera nunca se encoge */
 }
 
 .calendar-section {
-  flex-grow: 1;
-  overflow-y: auto;
+  flex-grow: 1; /* El calendario ocupa todo el espacio que sobre */
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Solo el calendario puede hacer scroll si es necesario */
 }
 
 .vista-mes-unico {
