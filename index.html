@@ -538,6 +538,7 @@ function calcularAsuntosPropios(trienios) {
       const [textoExportado, setTextoExportado] = useState("");
       const [tempTipo12h, setTempTipo12h] = useState("D");
       const [menuActivo, setMenuActivo] = useState("cuadrante");
+      const [tabActiva, setTabActiva] = useState('General');
       const [mesActual, setMesActual] = React.useState(new Date().getMonth());
 
       // Carga unificada de datos desde LocalStorage
@@ -1017,7 +1018,25 @@ function calcularAsuntosPropios(trienios) {
             <div className="modal" onClick={() => setShowGear(false)}>
               <div className="modal-content" onClick={e => e.stopPropagation()}>
                 <h2>⚙️ Panel de Control ({year})</h2>
-                
+                <div className="tab-container" style={{display:'flex', gap:'5px', marginBottom:'15px', flexWrap:'wrap'}}>
+  {['General', 'Vacaciones', 'Excesos', 'Permisos', 'Guardias', 'Movilizaciones', 'Otros'].map(t => (
+    <button 
+      key={t} 
+      onClick={() => setTabActiva(t)}
+      style={{
+        background: tabActiva === t ? '#1E293B' : '#E2E8F0',
+        color: tabActiva === t ? '#fff' : '#000',
+        padding: '5px 10px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer',
+        fontSize: '12px'
+      }}
+    >
+      {t}
+    </button>
+  ))}
+</div>
                 <div className="card" style={{borderTop:'3px solid #475569', background:'#F8FAFC'}}>
                   <label>💾 COPIA DE SEGURIDAD</label>
                   <button className="btn-backup" onClick={manejarExportar}>Generar Código</button>
@@ -1054,6 +1073,7 @@ function calcularAsuntosPropios(trienios) {
                 </div>
 
                 {/* --- SECCIÓN VACACIONES --- */}
+                {tabActiva === 'Vacaciones' && (
                 <div className="card">
                   <label>🏖️ ASIGNAR VACACIONES PERIODO</label>
                   {(user.periodos || []).filter(p => p && p.y === year).map(p => (
@@ -1079,8 +1099,10 @@ function calcularAsuntosPropios(trienios) {
                   ))}
                   <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null, dFin:null, mFin:null, esProrroga:false}]})}>+ Añadir Periodo</button>
                 </div>
+                )}
 
                 {/* --- SECCIÓN EXCESOS --- */}
+                 {tabActiva === 'Excesos' && (
                 <div className="card" style={{borderTop:'3px solid #22C55E'}}>
                   <label>🟢 EXCESOS DE JORNADA</label>
                   {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
@@ -1107,8 +1129,10 @@ function calcularAsuntosPropios(trienios) {
                   })}
                   <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ Añadir Exceso</button>
                 </div>
+                )}
 
                 {/* --- SECCIÓN ASUNTOS PROPIOS --- */}
+                {tabActiva === 'Asuntos Propios' && (
                 <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
                   <label>🟡 ASUNTOS PROPIOS</label>
                   {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
@@ -1135,8 +1159,10 @@ function calcularAsuntosPropios(trienios) {
                   })}
                   <button className="btn-primary" style={{background:'var(--ap-color)', color:'var(--dark)'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ Añadir AP</button>
                 </div>
+              )}
 
                 {/* --- SECCIÓN GUARDIAS --- */}
+                {tabActiva === 'Guardias' && (
                 <div className="card" style={{borderTop:'3px solid #F59E0B'}}>
                   <label>🛡️ REGISTRO DE GUARDIAS</label>
                   {(user.guardias || []).filter(g => g && g.y === year).map(g => (
@@ -1157,8 +1183,10 @@ function calcularAsuntosPropios(trienios) {
                   ))}
                   <button className="btn-primary" style={{background:'#F59E0B'}} onClick={() => setUser({...user, guardias: [...(user.guardias || []), {id:Date.now(), y:year, dia:null, mes:null, tipo:"Localizada", horas:24}]})}>+ Añadir Guardia</button>
                 </div>
+              )}
 
                 {/* --- SECCIÓN MOVILIZACIONES RANGOS HORARIOS --- */}
+                {tabActiva === 'Movilizaciones' && (
                 <div className="card" style={{borderTop:'3px solid #8B5CF6'}}>
                   <label><i className="fa-solid fa-user-clock"></i> GESTIÓN DE MOVILIZACIONES (HORAS EXTRAS)</label>
                   
@@ -1203,8 +1231,10 @@ function calcularAsuntosPropios(trienios) {
                   ))}
                   <button className="btn-primary" style={{background:'#8B5CF6'}} onClick={() => setUser({...user, movilizaciones: [...(user.movilizaciones || []), {id:Date.now(), y:year, dia:null, mes:null, horaInicio:"00:00", horaFin:"08:00"}]})}>+ Añadir por Rango Horario</button>
                 </div>
+              )}
 
                 {/* --- SECCIÓN PERMISOS --- */}
+                {tabActiva === 'Permisos' && (
 <div className="card" style={{borderTop:'3px solid #64748B'}}>
   <label>📝 GESTIÓN DE PERMISOS</label>
   {(user.permisos || []).filter(p => p && p.y === year).map(p => (
@@ -1221,8 +1251,10 @@ function calcularAsuntosPropios(trienios) {
   ))}
   <button className="btn-primary" style={{background:'#64748B'}} onClick={() => setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:""}]})}>+ Añadir Permiso</button>
 </div>
+                )}
 
                 {/* --- SECCIÓN OTROS --- */}
+                {tabActiva === 'Otros' && (
                 <div className="card" style={{borderTop:'3px solid #06B6D4'}}>
                   <label>💼 RECONOCIMIENTOS / CURSOS / COMISIONES</label>
                   {(user.otros || []).filter(o => o && o.y === year).map(o => (
@@ -1240,6 +1272,7 @@ function calcularAsuntosPropios(trienios) {
                   ))}
                   <button className="btn-primary" style={{background:'#06B6D4'}} onClick={() => setUser({...user, otros: [...(user.otros || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]})}>+ Añadir Registro</button>
                 </div>
+                )} {/* Cierre del IF de Otros */}
 
                 <button className="btn-danger" onClick={() => setShowGear(false)} style={{marginTop:'10px'}}>CERRAR PANEL</button>
               </div>
