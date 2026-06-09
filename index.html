@@ -167,12 +167,13 @@ html, body, #root {
     }
 
     /* --- RESUMEN DE BOLSAS --- */
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+ .summary-grid {
+  display: grid;
+  /* Cambiamos el repeat fijo por auto-fill para que se ajusten solas */
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
 
     .summary-card {
       background: var(--surface);
