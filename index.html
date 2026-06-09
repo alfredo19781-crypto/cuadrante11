@@ -809,6 +809,10 @@ function calcularAsuntosPropios(trienios) {
               if (currentFecha >= start && currentFecha <= end) tieneVac = true;
             }
           });
+          if (tieneVac) {
+  claseColor = "t-vacaciones";
+  turnoBadge = <span className="badge-turno">VAC</span>; // Opcional: mostrar "VAC" en la celda
+}
 
           const tieneAp = (user.ap || []).some(a => a && a.y === year && a.mes === (mIdx + 1) && a.dia === d && a.turno !== "-");
           const tieneExc = (user.excesos || []).some(e => e && e.y === year && e.mes === (mIdx + 1) && e.dia === d && e.turno !== "-");
