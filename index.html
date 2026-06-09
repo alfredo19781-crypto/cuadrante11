@@ -1204,6 +1204,24 @@ function calcularAsuntosPropios(trienios) {
                   <button className="btn-primary" style={{background:'#8B5CF6'}} onClick={() => setUser({...user, movilizaciones: [...(user.movilizaciones || []), {id:Date.now(), y:year, dia:null, mes:null, horaInicio:"00:00", horaFin:"08:00"}]})}>+ Añadir por Rango Horario</button>
                 </div>
 
+                {/* --- SECCIÓN PERMISOS --- */}
+<div className="card" style={{borderTop:'3px solid #64748B'}}>
+  <label>📝 GESTIÓN DE PERMISOS</label>
+  {(user.permisos || []).filter(p => p && p.y === year).map(p => (
+    <div key={p.id} className="row-config">
+      <div className="inputs-group">
+        <input type="number" placeholder="Día" value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
+        <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+        </select>
+        <input type="text" placeholder="Concepto" value={p.concepto || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
+      </div>
+      <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
+    </div>
+  ))}
+  <button className="btn-primary" style={{background:'#64748B'}} onClick={() => setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:""}]})}>+ Añadir Permiso</button>
+</div>
+
                 {/* --- SECCIÓN OTROS --- */}
                 <div className="card" style={{borderTop:'3px solid #06B6D4'}}>
                   <label>💼 RECONOCIMIENTOS / CURSOS / COMISIONES</label>
