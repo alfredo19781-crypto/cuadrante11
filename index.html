@@ -816,8 +816,13 @@ function calcularAsuntosPropios(trienios) {
           const movsDelDia = (user.movilizaciones || []).filter(m => m && m.y === year && m.mes === (mIdx + 1) && m.dia === d);
           const tieneMov = movsDelDia.length > 0;
 
-         celdas.push(
-  <div key={d} className={`day-cell ${claseColor} ${esFinde ? 'weekend' : ''}`}>
+        celdas.push(
+  <div 
+    key={d} 
+    className={`day-cell ${claseColor} ${esFinde ? 'weekend' : ''}`}
+    // --- ESTA ES LA LÍNEA QUE FALTA ---
+    onClick={() => abrirCeldaRapida(dK)} 
+  >
     <span className="day-number">{d}</span>
     {turnoBadge}
               
