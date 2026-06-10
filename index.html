@@ -1344,7 +1344,7 @@ const getDiasEnMes = (mes, year) => {
     </div>
   </div>
 )}
-          {/* --- MODAL RESTAURAR BACKUP --- */}
+        {/* --- MODAL RESTAURAR BACKUP --- */}
 {mostrarModalImportar && (
   <div className="modal" onClick={() => setMostrarModalImportar(false)}>
     <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -1356,7 +1356,20 @@ const getDiasEnMes = (mes, year) => {
         onChange={e => setTextoAImportar(e.target.value)} 
         style={{marginTop:'10px', fontFamily:'monospace', fontSize:'11px', width:'100%'}}
       />
-      <button className="btn-primary" onClick={manejarImportar}>RESTAURAR AHORA</button>
+      <button 
+        className="btn-primary" 
+        onClick={() => {
+          try {
+            if (!textoAImportar) return alert("Pega el código primero");
+            manejarImportar();
+          } catch (err) {
+            console.error("Error al restaurar:", err);
+            alert("Error al restaurar el código. Revisa la consola (F12) para más detalles.");
+          }
+        }}
+      >
+        RESTAURAR AHORA
+      </button>
       <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(false)}>CANCELAR</button>
     </div>
   </div>
