@@ -1138,10 +1138,23 @@ const getDiasEnMes = (mes, year) => {
 
 {/* --- SECCIÓN ASUNTOS PROPIOS --- */}
 {tabActiva === 'Asuntos Propios' && (
-  <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
-    <label>🟡 ASUNTOS PROPIOS</label>
+  <div className="card" style={{borderTop:'3px solid var(--ap-color, #FACC15)'}}>
+    <label>🟡 GESTIÓN DE ASUNTOS PROPIOS (8h)</label>
+    
     {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
       const diasDelMes = apItem.mes ? getDiasEnMes(apItem.mes, year) : 31;
+      
+      // Función para verificar si el turno está ocupado en el día y mes seleccionados
+      // Revisamos AP, Excesos, Permisos y Otros
+      const esOcupado = (idActual, dia, mes, turno) => {
+        const enAP = (user.ap || []).some(x => x.id !== idActual && x.y === year && x.dia === dia && x.mes === mes && x.turno === turno);
+        const enExcesos = (user.excesos || []).some(x => x.y === year && x.dia === dia && x.mes === mes && x.turno === turno);
+        const enPermisos = (user.permisos || []).some(x => x.y === year && x.dia === dia && x.mes === mes && x.turno === turno);
+        const enOtros = (user.otros || []).some(x => x.y === year && x.dia === dia && x.mes === mes && x.turno === turno);
+        
+        return enAP || enExcesos || enPermisos || enOtros;
+      };
+
       return (
         <div key={apItem.id} className="row-config">
           <div className="inputs-group">
@@ -1149,15 +1162,28 @@ const getDiasEnMes = (mes, year) => {
               <option value="" disabled>Día</option>
               {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
             </select>
+            
             <select value={apItem.mes || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, mes:parseInt(e.target.value)}:x)})}>
               <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
             </select>
+
+            <select value={apItem.turno || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, turno:e.target.value}:x)})}>
+              <option value="" disabled>Turno</option>
+              <option value="M">Mañana</option>
+              <option value="T">Tarde</option>
+              <option value="N">Noche</option>
+            </select>
           </div>
+          
+          {apItem.dia && apItem.mes && apItem.turno && esOcupado(apItem.id, apItem.dia, apItem.mes, apItem.turno) && (
+            <div style={{color:'red', fontSize:'10px', fontWeight:'bold', marginTop:'5px'}}>⚠️ ¡Turno ocupado en otra solicitud!</div>
+          )}
+          
           <button className="btn-del" onClick={() => setUser({...user, ap: user.ap.filter(x => x.id !== apItem.id)})}>🗑️ Borrar</button>
         </div>
       );
     })}
-    <button className="btn-primary" onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null}]})}>+ Añadir AP</button>
+    <button className="btn-primary" onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:""}]})}>+ Añadir AP</button>
   </div>
 )}
 
