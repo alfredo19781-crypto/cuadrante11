@@ -1359,12 +1359,11 @@ const getDiasEnMes = (mes, year) => {
       <button 
         className="btn-primary" 
         onClick={() => {
-          try {
-            if (!textoAImportar) return alert("Pega el código primero");
+          if (typeof manejarImportar === 'function') {
             manejarImportar();
-          } catch (err) {
-            console.error("Error al restaurar:", err);
-            alert("Error al restaurar el código. Revisa la consola (F12) para más detalles.");
+          } else {
+            console.error("Función manejarImportar no encontrada");
+            alert("Error: La función de restauración no está definida.");
           }
         }}
       >
@@ -1394,7 +1393,7 @@ const getDiasEnMes = (mes, year) => {
   </div>
 )}
 
-</div> 
+</div>
 );
 }
 
