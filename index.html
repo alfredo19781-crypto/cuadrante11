@@ -1086,14 +1086,62 @@ const getDiasEnMes = (mes, year) => {
                   <button className="btn-primary" onClick={aplicarPatron} style={{background:'#1E293B', marginTop:'8px'}}>CALCULAR ANUAL</button>
                 </div>
 
-             {/* --- SECCIÓN ASUNTOS PROPIOS --- */}
+             {/* --- SECCIÓN VACACIONES --- */}
+{tabActiva === 'Vacaciones' && (
+  <div className="card">
+    <label>🏖️ ASIGNAR VACACIONES PERIODO</label>
+    {(user.periodos || []).filter(p => p && p.y === year).map(p => {
+      const diasDelMes = p.mIni ? getDiasEnMes(p.mIni, year) : 31;
+      return (
+        <div key={p.id} className="row-config">
+          <div className="inputs-group">
+            <select value={p.mIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, mIni:parseInt(e.target.value)}:x)})}>
+              <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+            </select>
+            <select value={p.dIni || ""} onChange={e => setUser({...user, periodos: user.periodos.map(x=>x.id===p.id?{...x, dIni:parseInt(e.target.value)}:x)})}>
+              <option value="" disabled>Día</option>
+              {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <button className="btn-del" onClick={() => setUser({...user, periodos: user.periodos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
+        </div>
+      );
+    })}
+    <button className="btn-primary" onClick={() => setUser({...user, periodos: [...(user.periodos || []), {id:Date.now(), y:year, dIni:null, mIni:null}]})}>+ Añadir Periodo</button>
+  </div>
+)}
+
+{/* --- SECCIÓN EXCESOS --- */}
+{tabActiva === 'Excesos' && (
+  <div className="card" style={{borderTop:'3px solid #22C55E'}}>
+    <label>🟢 EXCESOS DE JORNADA</label>
+    {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
+      const diasDelMes = exc.mes ? getDiasEnMes(exc.mes, year) : 31;
+      return (
+        <div key={exc.id} className="row-config">
+          <div className="inputs-group">
+            <select value={exc.dia || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
+              <option value="" disabled>Día</option>
+              {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <select value={exc.mes || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, mes:parseInt(e.target.value)}:x)})}>
+              <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+            </select>
+          </div>
+          <button className="btn-del" onClick={() => setUser({...user, excesos: user.excesos.filter(x => x.id !== exc.id)})}>🗑️ Borrar</button>
+        </div>
+      );
+    })}
+    <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null}]})}>+ Añadir Exceso</button>
+  </div>
+)}
+
+{/* --- SECCIÓN ASUNTOS PROPIOS --- */}
 {tabActiva === 'Asuntos Propios' && (
   <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
     <label>🟡 ASUNTOS PROPIOS</label>
     {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
-      // CORRECCIÓN: usamos apItem.mes en lugar de exc.mes
       const diasDelMes = apItem.mes ? getDiasEnMes(apItem.mes, year) : 31;
-      
       return (
         <div key={apItem.id} className="row-config">
           <div className="inputs-group">
@@ -1101,87 +1149,17 @@ const getDiasEnMes = (mes, year) => {
               <option value="" disabled>Día</option>
               {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-            
-            <select value={apItem.mes || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+            <select value={apItem.mes || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, mes:parseInt(e.target.value)}:x)})}>
               <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
             </select>
-            
-            <select value={apItem.turno || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, turno:e.target.value}:x)})} style={{width:'65px'}}>
-              <option value="-">-</option>
-              {["M", "T", "N"].map(t => {
-                const disponible = turnosDisponibles.includes(t) || apItem.turno === t;
-                return <option key={t} value={t} disabled={!disponible}>{t} {!disponible ? "🚫" : ""}</option>;
-              })}
-            </select>
-            <button className={`toggle-btn ${apItem.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, esProrroga:!x.esProrroga}:x)})}>ANUL</button>
           </div>
           <button className="btn-del" onClick={() => setUser({...user, ap: user.ap.filter(x => x.id !== apItem.id)})}>🗑️ Borrar</button>
         </div>
       );
     })}
-    <button className="btn-primary" style={{background:'var(--ap-color)', color:'var(--dark)'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ Añadir AP</button>
+    <button className="btn-primary" onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null}]})}>+ Añadir AP</button>
   </div>
 )}
-
-                {/* --- SECCIÓN EXCESOS --- */}
-                 {tabActiva === 'Excesos' && (
-                <div className="card" style={{borderTop:'3px solid #22C55E'}}>
-                  <label>🟢 EXCESOS DE JORNADA</label>
-                  {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
-                    const diasDelMes = exc.mes ? getDiasEnMes(exc.mes, year) : 31;
-                    return (
-                      <div key={exc.id} className="row-config">
-                        <div className="inputs-group">
-                          <input type="number" placeholder="Día" value={exc.dia || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-                          <select value={exc.mes || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                            <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                          </select>
-                          <select value={exc.turno || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, turno:e.target.value}:x)})} style={{width:'65px'}}>
-                            <option value="-">-</option>
-                            {["M", "T", "N"].map(t => {
-                              const disponible = turnosDisponibles.includes(t) || exc.turno === t;
-                              return <option key={t} value={t} disabled={!disponible}>{t} {!disponible ? "🚫" : ""}</option>;
-                            })}
-                          </select>
-                          <button className={`toggle-btn ${exc.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, esProrroga:!x.esProrroga}:x)})}>ANUL</button>
-                        </div>
-                        <button className="btn-del" onClick={() => setUser({...user, excesos: user.excesos.filter(x => x.id !== exc.id)})}>🗑️ Borrar</button>
-                      </div>
-                    );
-                  })}
-                  <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ Añadir Exceso</button>
-                </div>
-                )}
-
-                {/* --- SECCIÓN ASUNTOS PROPIOS --- */}
-                {tabActiva === 'Asuntos Propios' && (
-                <div className="card" style={{borderTop:'3px solid var(--ap-color)'}}>
-                  <label>🟡 ASUNTOS PROPIOS</label>
-                  {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
-                    const diasDelMes = exc.mes ? getDiasEnMes(exc.mes, year) : 31;
-                    return (
-                      <div key={apItem.id} className="row-config">
-                        <div className="inputs-group">
-                          <input type="number" placeholder="Día" value={apItem.dia || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-                          <select value={apItem.mes || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                            <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                          </select>
-                          <select value={apItem.turno || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, turno:e.target.value}:x)})} style={{width:'65px'}}>
-                            <option value="-">-</option>
-                            {["M", "T", "N"].map(t => {
-                              const disponible = turnosDisponibles.includes(t) || apItem.turno === t;
-                              return <option key={t} value={t} disabled={!disponible}>{t} {!disponible ? "🚫" : ""}</option>;
-                            })}
-                          </select>
-                          <button className={`toggle-btn ${apItem.esProrroga ? 'active' : ''}`} onClick={() => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, esProrroga:!x.esProrroga}:x)})}>ANUL</button>
-                        </div>
-                        <button className="btn-del" onClick={() => setUser({...user, ap: user.ap.filter(x => x.id !== apItem.id)})}>🗑️ Borrar</button>
-                      </div>
-                    );
-                  })}
-                  <button className="btn-primary" style={{background:'var(--ap-color)', color:'var(--dark)'}} onClick={() => setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:"-", esProrroga:false}]})}>+ Añadir AP</button>
-                </div>
-              )}
 
                 {/* --- SECCIÓN GUARDIAS --- */}
                 {tabActiva === 'Guardias' && (
