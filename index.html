@@ -1344,7 +1344,7 @@ const getDiasEnMes = (mes, year) => {
     </div>
   </div>
 )}
-        {/* --- MODAL RESTAURAR BACKUP --- */}
+       {/* --- MODAL RESTAURAR BACKUP --- */}
 {mostrarModalImportar && (
   <div className="modal" onClick={() => setMostrarModalImportar(false)}>
     <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -1363,7 +1363,7 @@ const getDiasEnMes = (mes, year) => {
             manejarImportar();
           } else {
             console.error("Función manejarImportar no encontrada");
-            alert("Error: La función de restauración no está definida.");
+            alert("Error: La función 'manejarImportar' no está definida en este componente.");
           }
         }}
       >
