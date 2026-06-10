@@ -987,9 +987,9 @@ const calc = calculosAnuales();
         <span className="label">💼 Otros</span>
         <span className="value">{user.otros?.filter(o=>o.y===year).length || 0}</span>
       </div>
-     <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Permisos', data: user.permisos || []})}>
+    <div className="summary-card" onClick={() => setDetallesBolsa({tipo: 'Permisos', data: user.permisos || []})}>
   <span className="label">📝 Permisos</span>
-  <span className="value">{user.permisos?.filter(p => p.y === year).length || 0}</span>
+  <span className="value">{calc.permisosHoras.toFixed(1)} h</span>
 </div>
     </div>
   </div>
