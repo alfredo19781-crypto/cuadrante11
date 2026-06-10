@@ -1177,7 +1177,16 @@ const getDiasEnMes = (mes, year) => {
       };
 
       return (
-        <div key={apItem.id} className="row-config" style={{padding: '5px'}}>
+       <div 
+  key={apItem.id} 
+  className="row-config" 
+  style={{
+    padding: '5px',
+    border: (!apItem.dia || !apItem.mes || !apItem.turno) ? '2px solid red' : '1px solid #ccc',
+    borderRadius: '5px',
+    transition: 'border 0.3s ease'
+  }}
+>
           <div className="inputs-group">
             <select value={apItem.dia || ""} onChange={e => actualizarCampo('dia', e.target.value)}>
               <option value="" disabled>Día</option>
@@ -1369,7 +1378,22 @@ const getDiasEnMes = (mes, year) => {
 )} 
 
 {/* --- BOTÓN CERRAR Y MODALES SIGUIENTES --- */}
-<button className="btn-danger" onClick={() => setShowGear(false)} style={{marginTop:'10px'}}>CERRAR PANEL</button>
+<button 
+  className="btn-danger" 
+  style={{marginTop: '10px'}}
+  onClick={() => {
+    // Validamos: buscamos si hay algún AP que no tenga día, mes O turno
+    const apIncompleto = (user.ap || []).some(x => !x.dia || !x.mes || !x.turno);
+    
+    if (apIncompleto) {
+      alert("❌ No puedes cerrar: Tienes Asuntos Propios sin completar (Día, Mes o Turno).");
+    } else {
+      setShowGear(false); // Solo cerramos si todo está correcto
+    }
+  }}
+>
+  CERRAR PANEL
+</button>
 </div>
 </div>
 )}
