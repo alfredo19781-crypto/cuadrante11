@@ -775,7 +775,7 @@ const calculosAnuales = () => {
     diasVacaciones, diasProrrogaVac,
     apDisfrutados, apProrroga,
     excDisfrutados, excProrroga,
-    permisosHoras, // <-- Ya tienes el total aquí para mostrarlo
+    permisosHoras: permisosHoras, // <-- Asegúrate de que esta línea exista
     bolsaMovTotal, totalMovilizaciones, arrastradas,
     trienios
   };
@@ -1373,104 +1373,103 @@ const calc = calculosAnuales();
 {tabActiva === 'Permisos' && (
   <div className="card" style={{borderTop:'3px solid #64748B'}}>
     <label>📝 GESTIÓN DE PERMISOS</label>
-  {(user.permisos || []).filter(p => p && p.y === year).map(p => {
-  const diasDelMes = p.mes ? getDiasEnMes(p.mes, year) : 31;
-  
-  // Cálculo automático del total de horas
-  const calcularTotal = (hInicio, hFin) => {
-    if (!hInicio || !hFin) return 0;
-    const [h1, m1] = hInicio.split(':').map(Number);
-    const [h2, m2] = hFin.split(':').map(Number);
-    const minutos = (h2 * 60 + m2) - (h1 * 60 + m1);
-    return minutos > 0 ? (minutos / 60).toFixed(2) : 0;
-  };
+    {(user.permisos || []).filter(p => p && p.y === year).map(p => {
+      const diasDelMes = p.mes ? getDiasEnMes(p.mes, year) : 31;
+      const calcularTotal = (hInicio, hFin) => {
+        if (!hInicio || !hFin) return 0;
+        const [h1, m1] = hInicio.split(':').map(Number);
+        const [h2, m2] = hFin.split(':').map(Number);
+        const minutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+        return minutos > 0 ? (minutos / 60).toFixed(2) : 0;
+      };
+      const total = calcularTotal(p.horaInicio, p.horaFin);
+      const incompleto = !p.dia || !p.mes || !p.horaInicio || !p.horaFin;
 
-  const total = calcularTotal(p.horaInicio, p.horaFin);
-  const incompleto = !p.dia || !p.mes || !p.horaInicio || !p.horaFin;
-
-  return (
-    <div key={p.id} className="row-config" style={{
-      padding: '5px', border: incompleto ? '2px solid red' : '1px solid #ccc',
-      borderRadius: '5px', marginBottom: '5px'
-    }}>
-      <div className="inputs-group">
-        <select value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'50px'}}>
-          <option value="" disabled>Día</option>
-          {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
-        </select>
-        <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})}>
-          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-        </select>
-        <input type="time" value={p.horaInicio || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, horaInicio:e.target.value}:x)})} />
-        <input type="time" value={p.horaFin || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, horaFin:e.target.value}:x)})} />
-        <span style={{fontWeight:'bold', width:'50px', textAlign:'center'}}>{total}h</span>
-      </div>
-      <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️</button>
-    </div>
-  );
-})}
+      return (
+        <div key={p.id} className="row-config" style={{
+          padding: '5px', border: incompleto ? '2px solid red' : '1px solid #ccc',
+          borderRadius: '5px', marginBottom: '5px'
+        }}>
+          <div className="inputs-group">
+            <select value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'50px'}}>
+              <option value="" disabled>Día</option>
+              {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})}>
+              <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+            </select>
+            <input type="time" value={p.horaInicio || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, horaInicio:e.target.value}:x)})} />
+            <input type="time" value={p.horaFin || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, horaFin:e.target.value}:x)})} />
+            <span style={{fontWeight:'bold', width:'50px', textAlign:'center'}}>{total}h</span>
+          </div>
+          <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️</button>
+        </div>
+      );
+    })}
     <button className="btn-primary" style={{background:'#64748B'}} onClick={() => {
-    const incompleto = (user.permisos || []).some(x => !x.dia || !x.mes || !x.concepto || !x.horas);
-    if (incompleto) {
-        alert("❌ Completa los permisos actuales antes de añadir otro.");
-    } else {
-        // Añadimos horas: 0 o null al crear
-        // Al añadir, inicializa horaInicio y horaFin
-setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, horaInicio:"", horaFin:""}]})
-    }
-}}>+ Añadir Permiso</button>
+        const incompleto = (user.permisos || []).some(x => !x.dia || !x.mes || !x.horaInicio || !x.horaFin);
+        if (incompleto) alert("❌ Completa los permisos actuales antes de añadir otro.");
+        else setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, horaInicio:"", horaFin:""}]});
+    }}>+ Añadir Permiso</button>
   </div>
 )}
 
-                {/* --- SECCIÓN OTROS --- */}
+{/* --- SECCIÓN OTROS --- */}
 {tabActiva === 'Otros' && (
   <div className="card" style={{borderTop:'3px solid #06B6D4'}}>
     <label>💼 RECONOCIMIENTOS / CURSOS / COMISIONES</label>
-    
     {(user.otros || []).filter(o => o && o.y === year).map(o => {
-      // 1. Definimos la constante de días ANTES del return
       const diasDelMes = o.mes ? getDiasEnMes(o.mes, year) : 31;
-      
-      // 2. Usamos el return explícito
+      const incompleto = !o.dia || !o.mes || !o.concepto;
       return (
-        <div key={o.id} className="row-config">
+        <div key={o.id} className="row-config" style={{
+          padding: '5px', border: incompleto ? '2px solid red' : '1px solid #ccc',
+          borderRadius: '5px', marginBottom: '5px'
+        }}>
           <div className="inputs-group">
-            {/* SELECTOR DÍA DINÁMICO */}
             <select value={o.dia || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
               <option value="" disabled>Día</option>
               {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-            
             <select value={o.mes || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
               <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
             </select>
-            
             <input type="text" placeholder="Concepto" value={o.concepto || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
-            <input type="number" placeholder="Horas" value={o.horas || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
+            <input type="number" placeholder="Hrs" value={o.horas || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
           </div>
-          <button className="btn-del" onClick={() => setUser({...user, otros: user.otros.filter(x => x.id !== o.id)})}>🗑️ Borrar</button>
+          <button className="btn-del" onClick={() => setUser({...user, otros: user.otros.filter(x => x.id !== o.id)})}>🗑️</button>
         </div>
       );
     })}
-    
-    <button className="btn-primary" style={{background:'#06B6D4'}} onClick={() => setUser({...user, otros: [...(user.otros || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]})}>+ Añadir Registro</button>
+    <button className="btn-primary" style={{background:'#06B6D4'}} onClick={() => {
+        const incompleto = (user.otros || []).some(x => !x.dia || !x.mes || !x.concepto);
+        if (incompleto) alert("❌ Completa los registros actuales antes de añadir otro.");
+        else setUser({...user, otros: [...(user.otros || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]});
+    }}>+ Añadir Registro</button>
   </div>
-)} 
+)}
 
 {/* --- BOTÓN CERRAR Y MODALES SIGUIENTES --- */}
 <button 
   className="btn-danger" 
   style={{marginTop: '10px'}}
   onClick={() => {
+    // 1. Validaciones de cada sección
     const apIncompleto = (user.ap || []).some(x => !x.dia || !x.mes || !x.turno);
     const excesosIncompleto = (user.excesos || []).some(x => !x.dia || !x.mes || !x.turno);
-   const permisosIncompleto = (user.permisos || []).some(x => !x.dia || !x.mes || !x.concepto);
-// ... dentro del if del botón cerrar:
-if (apIncompleto || excesosIncompleto || permisosIncompleto) {
-   alert("❌ Hay campos incompletos en AP, Excesos o Permisos.");
-} else {
-   setShowGear(false);
-}
+    
+    // Validamos permisos con los campos correctos (dia, mes, horaInicio, horaFin)
+    const permisosIncompleto = (user.permisos || []).some(x => !x.dia || !x.mes || !x.horaInicio || !x.horaFin);
+    
+    // Validamos otros (dia, mes, concepto)
+    const otrosIncompleto = (user.otros || []).some(x => !x.dia || !x.mes || !x.concepto);
+    
+    // 2. Comprobación global
+    if (apIncompleto || excesosIncompleto || permisosIncompleto || otrosIncompleto) {
+      alert("❌ No puedes cerrar: Tienes campos incompletos en AP, Excesos, Permisos u Otros.");
+    } else {
+      setShowGear(false); // Solo cierra si todo está correcto
+    }
   }}
 >
   CERRAR PANEL
