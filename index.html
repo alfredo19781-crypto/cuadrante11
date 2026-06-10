@@ -709,66 +709,79 @@ const getDiasEnMes = (mes, year) => {
         return ["M", "T", "N"].filter(t => !turnosOcupados.includes(t));
       };
 
-      // --- RECALCULO DE BOLSAS GLOBALES ---
-      const calculosAnuales = () => {
-        let diasVacaciones = 0;
-        let diasProrrogaVac = 0;
-        (user.periodos || []).forEach(p => {
-          if (p && p.y === year && p.dIni && p.mIni && p.dFin && p.mFin) {
-            const f1 = new Date(year, p.mIni - 1, p.dIni);
-            const f2 = new Date(year, p.mFin - 1, p.dFin);
-            const diff = Math.floor((f2 - f1) / (1000 * 60 * 60 * 24)) + 1;
-            if (diff > 0) {
-              if (p.esProrroga) diasProrrogaVac += diff;
-              else diasVacaciones += diff;
-            }
-          }
-        });
-
-        let apDisfrutados = 0;
-        let apProrroga = 0;
-       (user.ap || []).forEach(a => {
-      // Validamos: año correcto, existe dia, existe mes, y el turno NO es null, ni "-", ni vacío
-      if (a && a.y === year && a.dia && a.mes && a.turno && a.turno !== "-" && a.turno !== "") {
-        if (a.esProrroga) {
-          apProrroga++;
-        } else {
-          apDisfrutados++;
-        }
+     // --- RECALCULO DE BOLSAS GLOBALES ---
+const calculosAnuales = () => {
+  // 1. Vacaciones
+  let diasVacaciones = 0;
+  let diasProrrogaVac = 0;
+  (user.periodos || []).forEach(p => {
+    if (p && p.y === year && p.dIni && p.mIni && p.dFin && p.mFin) {
+      const f1 = new Date(year, p.mIni - 1, p.dIni);
+      const f2 = new Date(year, p.mFin - 1, p.dFin);
+      const diff = Math.floor((f2 - f1) / (1000 * 60 * 60 * 24)) + 1;
+      if (diff > 0) {
+        if (p.esProrroga) diasProrrogaVac += diff;
+        else diasVacaciones += diff;
       }
-    });
+    }
+  });
 
-        let excDisfrutados = 0;
-        let excProrroga = 0;
-        (user.excesos || []).forEach(e => {
-          if (e && e.y === year && e.dia && e.mes && e.turno !== "-") {
-            if (e.esProrroga) excProrroga++;
-            else excDisfrutados++;
-          }
-        });
+  // 2. Asuntos Propios
+  let apDisfrutados = 0;
+  let apProrroga = 0;
+  (user.ap || []).forEach(a => {
+    if (a && a.y === year && a.dia && a.mes && a.turno && a.turno !== "-" && a.turno !== "") {
+      if (a.esProrroga) apProrroga++;
+      else apDisfrutados++;
+    }
+  });
 
-        let totalMovilizaciones = 0;
-        (user.movilizaciones || []).forEach(m => {
-          if (m && m.y === year && m.dia && m.mes) {
-            totalMovilizaciones += calcularDiferenciaHoras(m.horaInicio, m.horaFin);
-          }
-        });
-        const arrastradas = (user.mov_arrastradas && user.mov_arrastradas[year]) || 0;
-        const bolsaMovTotal = totalMovilizaciones + arrastradas;
+  // 3. Excesos
+  let excDisfrutados = 0;
+  let excProrroga = 0;
+  (user.excesos || []).forEach(e => {
+    if (e && e.y === year && e.dia && e.mes && e.turno && e.turno !== "-") {
+      if (e.esProrroga) excProrroga++;
+      else excDisfrutados++;
+    }
+  });
 
-        const canios = Math.max(0, year - user.ingreso);
-        const trienios = Math.floor(canios / 3);
+  // 4. Permisos (NUEVO BLOQUE)
+  let permisosHoras = 0;
+  (user.permisos || []).forEach(p => {
+    if (p && p.y === year && p.horaInicio && p.horaFin) {
+      const [h1, m1] = p.horaInicio.split(':').map(Number);
+      const [h2, m2] = p.horaFin.split(':').map(Number);
+      const diffMinutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+      if (diffMinutos > 0) permisosHoras += (diffMinutos / 60);
+    }
+  });
 
-        return {
-          diasVacaciones, diasProrrogaVac,
-          apDisfrutados, apProrroga,
-          excDisfrutados, excProrroga,
-          bolsaMovTotal, totalMovilizaciones, arrastradas,
-          trienios
-        };
-      };
+  // 5. Movilizaciones
+  let totalMovilizaciones = 0;
+  (user.movilizaciones || []).forEach(m => {
+    if (m && m.y === year && m.dia && m.mes) {
+      totalMovilizaciones += calcularDiferenciaHoras(m.horaInicio, m.horaFin);
+    }
+  });
+  const arrastradas = (user.mov_arrastradas && user.mov_arrastradas[year]) || 0;
+  const bolsaMovTotal = totalMovilizaciones + arrastradas;
 
-      const calc = calculosAnuales();
+  // 6. Trienios
+  const canios = Math.max(0, year - user.ingreso);
+  const trienios = Math.floor(canios / 3);
+
+  return {
+    diasVacaciones, diasProrrogaVac,
+    apDisfrutados, apProrroga,
+    excDisfrutados, excProrroga,
+    permisosHoras, // <-- Ya tienes el total aquí para mostrarlo
+    bolsaMovTotal, totalMovilizaciones, arrastradas,
+    trienios
+  };
+};
+
+const calc = calculosAnuales();
 
       // --- CONSTRUCCIÓN DEL CALENDARIO ---
       const renderMes = (mIdx) => {
@@ -1360,40 +1373,39 @@ const getDiasEnMes = (mes, year) => {
 {tabActiva === 'Permisos' && (
   <div className="card" style={{borderTop:'3px solid #64748B'}}>
     <label>📝 GESTIÓN DE PERMISOS</label>
-   {(user.permisos || []).filter(p => p && p.y === year).map(p => {
+  {(user.permisos || []).filter(p => p && p.y === year).map(p => {
   const diasDelMes = p.mes ? getDiasEnMes(p.mes, year) : 31;
-  // Añadimos !p.horas a la validación
-  const incompleto = !p.dia || !p.mes || !p.concepto || !p.horas;
   
+  // Cálculo automático del total de horas
+  const calcularTotal = (hInicio, hFin) => {
+    if (!hInicio || !hFin) return 0;
+    const [h1, m1] = hInicio.split(':').map(Number);
+    const [h2, m2] = hFin.split(':').map(Number);
+    const minutos = (h2 * 60 + m2) - (h1 * 60 + m1);
+    return minutos > 0 ? (minutos / 60).toFixed(2) : 0;
+  };
+
+  const total = calcularTotal(p.horaInicio, p.horaFin);
+  const incompleto = !p.dia || !p.mes || !p.horaInicio || !p.horaFin;
+
   return (
     <div key={p.id} className="row-config" style={{
-      padding: '5px',
-      border: incompleto ? '2px solid red' : '1px solid #ccc',
-      borderRadius: '5px',
-      marginBottom: '5px'
+      padding: '5px', border: incompleto ? '2px solid red' : '1px solid #ccc',
+      borderRadius: '5px', marginBottom: '5px'
     }}>
       <div className="inputs-group">
-        <select value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
+        <select value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'50px'}}>
           <option value="" disabled>Día</option>
           {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
         </select>
-        
-        <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+        <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})}>
           <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
         </select>
-        
-        <input type="text" placeholder="Concepto" value={p.concepto || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
-        
-        {/* --- NUEVO INPUT PARA HORAS --- */}
-        <input 
-          type="number" 
-          placeholder="Hrs" 
-          value={p.horas || ""} 
-          onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, horas:parseFloat(e.target.value) || 0}:x)})} 
-          style={{width:'50px'}} 
-        />
+        <input type="time" value={p.horaInicio || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, horaInicio:e.target.value}:x)})} />
+        <input type="time" value={p.horaFin || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, horaFin:e.target.value}:x)})} />
+        <span style={{fontWeight:'bold', width:'50px', textAlign:'center'}}>{total}h</span>
       </div>
-      <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
+      <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️</button>
     </div>
   );
 })}
@@ -1403,7 +1415,8 @@ const getDiasEnMes = (mes, year) => {
         alert("❌ Completa los permisos actuales antes de añadir otro.");
     } else {
         // Añadimos horas: 0 o null al crear
-        setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]});
+        // Al añadir, inicializa horaInicio y horaFin
+setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, horaInicio:"", horaFin:""}]})
     }
 }}>+ Añadir Permiso</button>
   </div>
