@@ -1356,35 +1356,56 @@ const getDiasEnMes = (mes, year) => {
   </div>
 )}
 
-                {/* --- SECCIÓN PERMISOS --- */}
+{/* --- SECCIÓN PERMISOS --- */}
 {tabActiva === 'Permisos' && (
   <div className="card" style={{borderTop:'3px solid #64748B'}}>
     <label>📝 GESTIÓN DE PERMISOS</label>
-    {(user.permisos || []).filter(p => p && p.y === year).map(p => {
-      // Calculamos días disponibles para este permiso según su mes
-      const diasDelMes = p.mes ? getDiasEnMes(p.mes, year) : 31;
-      
-      return (
-        <div key={p.id} className="row-config">
-          <div className="inputs-group">
-            {/* Selector de día dinámico */}
-            <select value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
-              <option value="" disabled>Día</option>
-              {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
-            </select>
-            
-            {/* Selector de mes */}
-            <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-              <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-            </select>
-            
-            <input type="text" placeholder="Concepto" value={p.concepto || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
-          </div>
-          <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
-        </div>
-      );
-    })}
-    <button className="btn-primary" style={{background:'#64748B'}} onClick={() => setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:""}]})}>+ Añadir Permiso</button>
+   {(user.permisos || []).filter(p => p && p.y === year).map(p => {
+  const diasDelMes = p.mes ? getDiasEnMes(p.mes, year) : 31;
+  // Añadimos !p.horas a la validación
+  const incompleto = !p.dia || !p.mes || !p.concepto || !p.horas;
+  
+  return (
+    <div key={p.id} className="row-config" style={{
+      padding: '5px',
+      border: incompleto ? '2px solid red' : '1px solid #ccc',
+      borderRadius: '5px',
+      marginBottom: '5px'
+    }}>
+      <div className="inputs-group">
+        <select value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
+          <option value="" disabled>Día</option>
+          {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+        </select>
+        
+        <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+        </select>
+        
+        <input type="text" placeholder="Concepto" value={p.concepto || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
+        
+        {/* --- NUEVO INPUT PARA HORAS --- */}
+        <input 
+          type="number" 
+          placeholder="Hrs" 
+          value={p.horas || ""} 
+          onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, horas:parseFloat(e.target.value) || 0}:x)})} 
+          style={{width:'50px'}} 
+        />
+      </div>
+      <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
+    </div>
+  );
+})}
+    <button className="btn-primary" style={{background:'#64748B'}} onClick={() => {
+    const incompleto = (user.permisos || []).some(x => !x.dia || !x.mes || !x.concepto || !x.horas);
+    if (incompleto) {
+        alert("❌ Completa los permisos actuales antes de añadir otro.");
+    } else {
+        // Añadimos horas: 0 o null al crear
+        setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]});
+    }
+}}>+ Añadir Permiso</button>
   </div>
 )}
 
@@ -1430,12 +1451,13 @@ const getDiasEnMes = (mes, year) => {
   onClick={() => {
     const apIncompleto = (user.ap || []).some(x => !x.dia || !x.mes || !x.turno);
     const excesosIncompleto = (user.excesos || []).some(x => !x.dia || !x.mes || !x.turno);
-    
-    if (apIncompleto || excesosIncompleto) {
-      alert("❌ No puedes cerrar: Hay campos (AP o Excesos) incompletos.");
-    } else {
-      setShowGear(false);
-    }
+   const permisosIncompleto = (user.permisos || []).some(x => !x.dia || !x.mes || !x.concepto);
+// ... dentro del if del botón cerrar:
+if (apIncompleto || excesosIncompleto || permisosIncompleto) {
+   alert("❌ Hay campos incompletos en AP, Excesos o Permisos.");
+} else {
+   setShowGear(false);
+}
   }}
 >
   CERRAR PANEL
