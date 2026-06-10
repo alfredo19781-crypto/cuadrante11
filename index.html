@@ -599,7 +599,7 @@ const getDiasEnMes = (mes, year) => {
         setTextoExportado(str);
       };
 
-      const manejadorImportar = () => {
+      const manejarImportar = () => { // Cambiado de manejadorImportar a manejarImportar
     try {
       const dec = decodeURIComponent(escape(atob(textoAImportar.trim())));
       const obj = JSON.parse(dec);
@@ -614,7 +614,7 @@ const getDiasEnMes = (mes, year) => {
     } catch(e) {
       alert("Error al procesar el código de restauración.");
     }
-  };
+};
 
       const cambiarAnio = (dir) => setYear(prev => prev + dir);
 
