@@ -727,12 +727,16 @@ const getDiasEnMes = (mes, year) => {
 
         let apDisfrutados = 0;
         let apProrroga = 0;
-        (user.ap || []).forEach(a => {
-          if (a && a.y === year && a.dia && a.mes && a.turno !== "-") {
-            if (a.esProrroga) apProrroga++;
-            else apDisfrutados++;
-          }
-        });
+       (user.ap || []).forEach(a => {
+      // Validamos: año correcto, existe dia, existe mes, y el turno NO es null, ni "-", ni vacío
+      if (a && a.y === year && a.dia && a.mes && a.turno && a.turno !== "-" && a.turno !== "") {
+        if (a.esProrroga) {
+          apProrroga++;
+        } else {
+          apDisfrutados++;
+        }
+      }
+    });
 
         let excDisfrutados = 0;
         let excProrroga = 0;
