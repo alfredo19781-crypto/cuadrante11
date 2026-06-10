@@ -1345,33 +1345,45 @@ const getDiasEnMes = (mes, year) => {
   </div>
 )}
           {/* --- MODAL RESTAURAR BACKUP --- */}
-          {mostrarModalImportar && (
-            <div className="modal" onClick={() => setMostrarModalImportar(false)}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h3>Restaurar Copia de Seguridad</h3>
-                <textarea rows="6" placeholder="Pega aquí el código cifrado..." value={textoAImportar} onChange={e => setTextoAImportar(e.target.value)} style={{marginTop:'10px', fontFamily:'monospace', fontSize:'11px'}}></textarea>
-                <button className="btn-primary" onClick={manejarImportar}>RESTAURAR AHORA</button>
-                <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(false)}>CANCELAR</button>
-              </div>
-            </div>
-          )}
+{mostrarModalImportar && (
+  <div className="modal" onClick={() => setMostrarModalImportar(false)}>
+    <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <h3>Restaurar Copia de Seguridad</h3>
+      <textarea 
+        rows="6" 
+        placeholder="Pega aquí el código cifrado..." 
+        value={textoAImportar} 
+        onChange={e => setTextoAImportar(e.target.value)} 
+        style={{marginTop:'10px', fontFamily:'monospace', fontSize:'11px', width:'100%'}}
+      />
+      <button className="btn-primary" onClick={manejarImportar}>RESTAURAR AHORA</button>
+      <button className="btn-danger" style={{background:'#64748B'}} onClick={() => setMostrarModalImportar(false)}>CANCELAR</button>
+    </div>
+  </div>
+)}
 
-          {/* --- SUBMODAL EXPORTAR BACKUP --- */}
-          {textoExportado && (
-            <div className="modal" onClick={() => setTextoExportado("")}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h3>Tu Código de Seguridad</h3>
-                <p style={{fontSize:'12px', color:'#64748B', margin:'5px 0'}}>Guarda este bloque de texto en tus notas:</p>
-                <textarea readOnly rows="6" value={textoExportado} onClick={e => e.target.select()} style={{background:'#F1F5F9', fontFamily:'monospace', fontSize:'11px'}}></textarea>
-                <button className="btn-primary" onClick={() => { navigator.clipboard.writeText(textoExportado); alert("¡Copiado al portapapeles!"); }}>COPIAR TEXTO</button>
-                <button className="btn-danger" onClick={() => setTextoExportado("")}>CERRAR</button>
-              </div>
-            </div>
-          )}
+{/* --- SUBMODAL EXPORTAR BACKUP --- */}
+{textoExportado && (
+  <div className="modal" onClick={() => setTextoExportado("")}>
+    <div className="modal-content" onClick={e => e.stopPropagation()}>
+      <h3>Tu Código de Seguridad</h3>
+      <p style={{fontSize:'12px', color:'#64748B', margin:'5px 0'}}>Guarda este bloque de texto en tus notas:</p>
+      <textarea 
+        readOnly 
+        rows="6" 
+        value={textoExportado} 
+        onClick={e => e.target.select()} 
+        style={{background:'#F1F5F9', fontFamily:'monospace', fontSize:'11px', width:'100%'}}
+      />
+      <button className="btn-primary" onClick={() => { navigator.clipboard.writeText(textoExportado); alert("¡Copiado!"); }}>COPIAR TEXTO</button>
+      <button className="btn-danger" onClick={() => setTextoExportado("")}>CERRAR</button>
+    </div>
+  </div>
+)}
 
-        </div>
-      );
-    }
+</div> 
+);
+}
 
     const container = document.getElementById('root');
     const root = ReactDOM.createRoot(container);
