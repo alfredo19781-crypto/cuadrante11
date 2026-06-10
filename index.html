@@ -1144,9 +1144,9 @@ const getDiasEnMes = (mes, year) => {
     {(user.ap || []).filter(a => a && a.y === year).map(apItem => {
       const diasDelMes = apItem.mes ? getDiasEnMes(apItem.mes, year) : 31;
       
-      // Lógica de validación
       const esOcupado = (idActual, dia, mes, turno) => {
         if (!dia || !mes || !turno) return false;
+        // Comprobamos en todas las colecciones relevantes
         const enAP = (user.ap || []).some(x => x.id !== idActual && x.dia === dia && x.mes === mes && x.turno === turno);
         const enExcesos = (user.excesos || []).some(x => x.dia === dia && x.mes === mes && x.turno === turno);
         const enPermisos = (user.permisos || []).some(x => x.dia === dia && x.mes === mes && x.turno === turno);
@@ -1154,54 +1154,51 @@ const getDiasEnMes = (mes, year) => {
         return enAP || enExcesos || enPermisos || enOtros;
       };
 
-      const ocupado = esOcupado(apItem.id, apItem.dia, apItem.mes, apItem.turno);
-      const incompleto = !apItem.dia || !apItem.mes || !apItem.turno;
+      const actualizarCampo = (campo, valor) => {
+        const nuevoValor = campo === 'dia' || campo === 'mes' ? parseInt(valor) : valor;
+        
+        // Creamos un borrador del objeto para validar
+        const apTemporal = { ...apItem, [campo]: nuevoValor };
+        
+        // VALIDACIÓN: ¿Está ocupado?
+        if (apTemporal.dia && apTemporal.mes && apTemporal.turno) {
+          if (esOcupado(apItem.id, apTemporal.dia, apTemporal.mes, apTemporal.turno)) {
+            alert("¡Error! Ese día y turno ya están ocupados en otra solicitud.");
+            return; // NO guardamos el cambio
+          }
+        }
+        
+        // Si pasa la validación, actualizamos
+        setUser({...user, ap: user.ap.map(x => x.id === apItem.id ? { ...x, [campo]: nuevoValor } : x)});
+      };
 
       return (
-        <div key={apItem.id} className="row-config" style={{
-          backgroundColor: ocupado ? '#FEF2F2' : incompleto ? '#FFFBEB' : 'transparent',
-          border: incompleto ? '1px dashed #D97706' : 'none',
-          padding: '8px',
-          borderRadius: '5px',
-          marginBottom: '5px'
-        }}>
+        <div key={apItem.id} className="row-config" style={{padding: '5px'}}>
           <div className="inputs-group">
-            <select value={apItem.dia || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, dia:parseInt(e.target.value)}:x)})}>
+            <select value={apItem.dia || ""} onChange={e => actualizarCampo('dia', e.target.value)}>
               <option value="" disabled>Día</option>
               {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
             </select>
             
-            <select value={apItem.mes || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, mes:parseInt(e.target.value)}:x)})}>
+            <select value={apItem.mes || ""} onChange={e => actualizarCampo('mes', e.target.value)}>
               <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
             </select>
 
-            <select value={apItem.turno || ""} onChange={e => setUser({...user, ap: user.ap.map(x=>x.id===apItem.id?{...x, turno:e.target.value}:x)})}>
+            <select value={apItem.turno || ""} onChange={e => actualizarCampo('turno', e.target.value)}>
               <option value="" disabled>Turno</option>
               <option value="M">M</option><option value="T">T</option><option value="N">N</option>
             </select>
           </div>
-          
-          {ocupado && <div style={{color:'red', fontSize:'10px', fontWeight:'bold'}}>⚠️ Turno ocupado</div>}
-          {incompleto && !ocupado && <div style={{color:'#D97706', fontSize:'10px'}}>Completa los campos</div>}
-          
           <button className="btn-del" onClick={() => setUser({...user, ap: user.ap.filter(x => x.id !== apItem.id)})}>🗑️</button>
         </div>
       );
     })}
     
-    <button 
-      className="btn-primary" 
-      onClick={() => {
+    <button className="btn-primary" onClick={() => {
         const incompleto = (user.ap || []).some(x => !x.dia || !x.mes || !x.turno);
-        if (incompleto) {
-          alert("Por favor, completa los campos del AP actual antes de añadir otro.");
-        } else {
-          setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:""}]});
-        }
-      }}
-    >
-      + Añadir AP
-    </button>
+        if (incompleto) alert("Completa los campos actuales antes de añadir otro.");
+        else setUser({...user, ap: [...(user.ap || []), {id:Date.now(), y:year, dia:null, mes:null, turno:""}]});
+    }}>+ Añadir AP</button>
   </div>
 )}
 
