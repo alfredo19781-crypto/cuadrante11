@@ -1121,30 +1121,67 @@ const getDiasEnMes = (mes, year) => {
     <label>🟢 EXCESOS DE JORNADA</label>
     {(user.excesos || []).filter(e => e && e.y === year).map(exc => {
       const diasDelMes = exc.mes ? getDiasEnMes(exc.mes, year) : 31;
+      
+      // Función para validar si el turno está ocupado
+      const esOcupado = (id, dia, mes, turno) => {
+        if (!dia || !mes || !turno) return false;
+        // Comprobamos si ya existe en APs, Permisos u otros Excesos
+        const enAP = (user.ap || []).some(x => x.dia === dia && x.mes === mes && x.turno === turno);
+        const enExcesos = (user.excesos || []).some(x => x.id !== id && x.dia === dia && x.mes === mes && x.turno === turno);
+        return enAP || enExcesos;
+      };
+
       return (
         <div key={exc.id} className="row-config" style={{
           padding: '5px',
-          border: (!exc.dia || !exc.mes) ? '2px solid red' : '1px solid #ccc',
+          border: (!exc.dia || !exc.mes || !exc.turno) ? '2px solid red' : '1px solid #ccc',
           borderRadius: '5px',
           marginBottom: '5px'
         }}>
           <div className="inputs-group">
-            <select value={exc.dia || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
+            <select value={exc.dia || ""} onChange={e => {
+                const nuevoDia = parseInt(e.target.value);
+                if (esOcupado(exc.id, nuevoDia, exc.mes, exc.turno)) {
+                    alert("¡Ese turno ya está ocupado!");
+                } else {
+                    setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, dia:nuevoDia}:x)});
+                }
+            }} style={{width:'55px'}}>
               <option value="" disabled>Día</option>
               {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
             </select>
-            <select value={exc.mes || ""} onChange={e => setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, mes:parseInt(e.target.value)}:x)})}>
+
+            <select value={exc.mes || ""} onChange={e => {
+                const nuevoMes = parseInt(e.target.value);
+                if (esOcupado(exc.id, exc.dia, nuevoMes, exc.turno)) {
+                    alert("¡Ese turno ya está ocupado!");
+                } else {
+                    setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, mes:nuevoMes}:x)});
+                }
+            }}>
               <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
             </select>
+
+            <select value={exc.turno || ""} onChange={e => {
+                const nuevoTurno = e.target.value;
+                if (esOcupado(exc.id, exc.dia, exc.mes, nuevoTurno)) {
+                    alert("¡Ese turno ya está ocupado!");
+                } else {
+                    setUser({...user, excesos: user.excesos.map(x=>x.id===exc.id?{...x, turno:nuevoTurno}:x)});
+                }
+            }}>
+              <option value="" disabled>Turno</option>
+              <option value="M">M</option><option value="T">T</option><option value="N">N</option>
+            </select>
           </div>
-          <button className="btn-del" onClick={() => setUser({...user, excesos: user.excesos.filter(x => x.id !== exc.id)})}>🗑️ Borrar</button>
+          <button className="btn-del" onClick={() => setUser({...user, excesos: user.excesos.filter(x => x.id !== exc.id)})}>🗑️</button>
         </div>
       );
     })}
     <button className="btn-primary" style={{background:'#22C55E'}} onClick={() => {
-        const incompleto = (user.excesos || []).some(x => !x.dia || !x.mes);
+        const incompleto = (user.excesos || []).some(x => !x.dia || !x.mes || !x.turno);
         if (incompleto) alert("Completa los excesos actuales antes de añadir otro.");
-        else setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null}]});
+        else setUser({...user, excesos: [...(user.excesos || []), {id:Date.now(), y:year, dia:null, mes:null, turno:""}]});
     }}>+ Añadir Exceso</button>
   </div>
 )}
@@ -1391,12 +1428,11 @@ const getDiasEnMes = (mes, year) => {
   className="btn-danger" 
   style={{marginTop: '10px'}}
   onClick={() => {
-    // Validamos APs y Excesos
     const apIncompleto = (user.ap || []).some(x => !x.dia || !x.mes || !x.turno);
-    const excesosIncompleto = (user.excesos || []).some(x => !x.dia || !x.mes);
+    const excesosIncompleto = (user.excesos || []).some(x => !x.dia || !x.mes || !x.turno);
     
     if (apIncompleto || excesosIncompleto) {
-      alert("❌ No puedes cerrar: Tienes campos de AP o Excesos incompletos.");
+      alert("❌ No puedes cerrar: Hay campos (AP o Excesos) incompletos.");
     } else {
       setShowGear(false);
     }
