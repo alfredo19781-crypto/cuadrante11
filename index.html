@@ -1161,123 +1161,174 @@ const getDiasEnMes = (mes, year) => {
   </div>
 )}
 
-                {/* --- SECCIÓN GUARDIAS --- */}
-                {tabActiva === 'Guardias' && (
-                <div className="card" style={{borderTop:'3px solid #F59E0B'}}>
-                  <label>🛡️ REGISTRO DE GUARDIAS</label>
-                  {(user.guardias || []).filter(g => g && g.y === year).map(g => (
-                    <div key={g.id} className="row-config">
-                      <div className="inputs-group">
-                        <input type="number" placeholder="Día" value={g.dia || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-                        <select value={g.mes || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                        </select>
-                        <select value={g.tipo || "Localizada"} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, tipo:e.target.value}:x)})} style={{width:'100px'}}>
-                          <option value="Localizada">Localizada</option>
-                          <option value="Presencial">Presencial</option>
-                        </select>
-                        <input type="number" placeholder="Horas" value={g.horas || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
-                      </div>
-                      <button className="btn-del" onClick={() => setUser({...user, guardias: user.guardias.filter(x => x.id !== g.id)})}>🗑️ Borrar</button>
-                    </div>
-                  ))}
-                  <button className="btn-primary" style={{background:'#F59E0B'}} onClick={() => setUser({...user, guardias: [...(user.guardias || []), {id:Date.now(), y:year, dia:null, mes:null, tipo:"Localizada", horas:24}]})}>+ Añadir Guardia</button>
-                </div>
-              )}
+              {/* --- SECCIÓN GUARDIAS --- */}
+{tabActiva === 'Guardias' && (
+  <div className="card" style={{borderTop:'3px solid #F59E0B'}}>
+    <label>🛡️ REGISTRO DE GUARDIAS</label>
+    {(user.guardias || []).filter(g => g && g.y === year).map(g => {
+      // Calculamos días según el mes seleccionado para esta guardia
+      const diasDelMes = g.mes ? getDiasEnMes(g.mes, year) : 31;
 
-                {/* --- SECCIÓN MOVILIZACIONES RANGOS HORARIOS --- */}
-                {tabActiva === 'Movilizaciones' && (
-                <div className="card" style={{borderTop:'3px solid #8B5CF6'}}>
-                  <label><i className="fa-solid fa-user-clock"></i> GESTIÓN DE MOVILIZACIONES (HORAS EXTRAS)</label>
-                  
-                  <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', background:'#EEF2F6', padding:'8px', borderRadius:'8px', marginBottom:'10px'}}>
-                    <span style={{fontSize:'12px', fontWeight:'600', color:'#475569'}}>Horas acumuladas año anterior (Máx 8h):</span>
-                    <input 
-                      type="number" 
-                      min="0" 
-                      max="8" 
-                      value={(user.mov_arrastradas && user.mov_arrastradas[year]) || 0} 
-                      onChange={e => {
-                        const hVal = Math.min(8, Math.max(0, parseInt(e.target.value) || 0));
-                        setUser({
-                          ...user,
-                          mov_arrastradas: { ...(user.mov_arrastradas || {}), [year]: hVal }
-                        });
-                      }} 
-                      style={{width:'65px', padding:'4px', textAlign:'center', fontWeight:'bold'}} 
-                    />
-                  </div>
+      return (
+        <div key={g.id} className="row-config">
+          <div className="inputs-group">
+            {/* Selector de día dinámico */}
+            <select value={g.dia || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, dia:parseInt(e.target.value)}:x)})}>
+               <option value="" disabled>Día</option>
+               {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            
+            {/* Selector de mes */}
+            <select value={g.mes || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, mes:parseInt(e.target.value)}:x)})}>
+              <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+            </select>
 
-                  {(user.movilizaciones || []).filter(m => m && m.y === year).map(m => (
-                    <div key={m.id} className="row-config">
-                      <div className="inputs-group" style={{flexWrap: 'wrap', gap: '4px'}}>
-                        <input type="number" placeholder="Día" value={m.dia || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'45px', textAlign:'center'}} />
-                        <select value={m.mes || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1', minWidth: '70px'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((mName,i)=><option key={i} value={i+1}>{mName.slice(0,3)}</option>)}
-                        </select>
-                        
-                        <div style={{display:'flex', alignItems:'center', gap:'2px', background:'#F1F5F9', padding:'2px 4px', borderRadius:'6px'}}>
-                          <input type="time" value={m.horaInicio || "00:00"} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horaInicio:e.target.value}:x)})} style={{padding:'2px', fontSize:'11px', border:'1px solid #CBD5E1', borderRadius:'4px'}} />
-                          <span style={{fontSize:'10px', color:'#64748B'}}>a</span>
-                          <input type="time" value={m.horaFin || "00:00"} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horaFin:e.target.value}:x)})} style={{padding:'2px', fontSize:'11px', border:'1px solid #CBD5E1', borderRadius:'4px'}} />
-                        </div>
-                        
-                        <div style={{fontSize:'11px', fontWeight:'bold', color:'#4F46E5', minWidth:'40px', textAlign:'center'}}>
-                          {calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h
-                        </div>
-                      </div>
-                      <button className="btn-del" onClick={() => setUser({...user, movilizaciones: user.movilizaciones.filter(x => x.id !== m.id)})}>🗑 *Borrar*</button>
-                    </div>
-                  ))}
-                  <button className="btn-primary" style={{background:'#8B5CF6'}} onClick={() => setUser({...user, movilizaciones: [...(user.movilizaciones || []), {id:Date.now(), y:year, dia:null, mes:null, horaInicio:"00:00", horaFin:"08:00"}]})}>+ Añadir por Rango Horario</button>
-                </div>
-              )}
+            {/* Resto de campos (tipo y horas) */}
+            <select value={g.tipo || "Localizada"} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, tipo:e.target.value}:x)})}>
+              <option value="Localizada">Localizada</option>
+              <option value="Presencial">Presencial</option>
+            </select>
+            <input type="number" placeholder="Horas" value={g.horas || ""} onChange={e => setUser({...user, guardias: user.guardias.map(x=>x.id===g.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
+          </div>
+          <button className="btn-del" onClick={() => setUser({...user, guardias: user.guardias.filter(x => x.id !== g.id)})}>🗑️ Borrar</button>
+        </div>
+      );
+    })}
+    <button className="btn-primary" style={{background:'#F59E0B'}} onClick={() => setUser({...user, guardias: [...(user.guardias || []), {id:Date.now(), y:year, dia:null, mes:null, tipo:"Localizada", horas:24}]})}>+ Añadir Guardia</button>
+  </div>
+)}
+
+               {/* --- SECCIÓN MOVILIZACIONES RANGOS HORARIOS --- */}
+{tabActiva === 'Movilizaciones' && (
+  <div className="card" style={{borderTop:'3px solid #8B5CF6'}}>
+    <label><i className="fa-solid fa-user-clock"></i> GESTIÓN DE MOVILIZACIONES (HORAS EXTRAS)</label>
+    
+    <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', background:'#EEF2F6', padding:'8px', borderRadius:'8px', marginBottom:'10px'}}>
+      <span style={{fontSize:'12px', fontWeight:'600', color:'#475569'}}>Horas acumuladas año anterior (Máx 8h):</span>
+      <input 
+        type="number" 
+        min="0" 
+        max="8" 
+        value={(user.mov_arrastradas && user.mov_arrastradas[year]) || 0} 
+        onChange={e => {
+          const hVal = Math.min(8, Math.max(0, parseInt(e.target.value) || 0));
+          setUser({
+            ...user,
+            mov_arrastradas: { ...(user.mov_arrastradas || {}), [year]: hVal }
+          });
+        }} 
+        style={{width:'65px', padding:'4px', textAlign:'center', fontWeight:'bold'}} 
+      />
+    </div>
+
+    {(user.movilizaciones || []).filter(m => m && m.y === year).map(m => {
+      // Cálculo de días según mes
+      const diasDelMes = m.mes ? getDiasEnMes(m.mes, year) : 31;
+      
+      return (
+        <div key={m.id} className="row-config">
+          <div className="inputs-group" style={{flexWrap: 'wrap', gap: '4px'}}>
+            {/* SELECT DÍA DINÁMICO */}
+            <select value={m.dia || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
+               <option value="" disabled>Día</option>
+               {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            
+            <select value={m.mes || ""} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1', minWidth: '70px'}}>
+              <option value="" disabled>Mes</option>{MESES_NOM.map((mName,i)=><option key={i} value={i+1}>{mName.slice(0,3)}</option>)}
+            </select>
+            
+            <div style={{display:'flex', alignItems:'center', gap:'2px', background:'#F1F5F9', padding:'2px 4px', borderRadius:'6px'}}>
+              <input type="time" value={m.horaInicio || "00:00"} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horaInicio:e.target.value}:x)})} style={{padding:'2px', fontSize:'11px', border:'1px solid #CBD5E1', borderRadius:'4px'}} />
+              <span style={{fontSize:'10px', color:'#64748B'}}>a</span>
+              <input type="time" value={m.horaFin || "00:00"} onChange={e => setUser({...user, movilizaciones: user.movilizaciones.map(x=>x.id===m.id?{...x, horaFin:e.target.value}:x)})} style={{padding:'2px', fontSize:'11px', border:'1px solid #CBD5E1', borderRadius:'4px'}} />
+            </div>
+            
+            <div style={{fontSize:'11px', fontWeight:'bold', color:'#4F46E5', minWidth:'40px', textAlign:'center'}}>
+              {calcularDiferenciaHoras(m.horaInicio, m.horaFin)}h
+            </div>
+          </div>
+          <button className="btn-del" onClick={() => setUser({...user, movilizaciones: user.movilizaciones.filter(x => x.id !== m.id)})}>🗑️ Borrar</button>
+        </div>
+      );
+    })}
+    <button className="btn-primary" style={{background:'#8B5CF6'}} onClick={() => setUser({...user, movilizaciones: [...(user.movilizaciones || []), {id:Date.now(), y:year, dia:null, mes:null, horaInicio:"00:00", horaFin:"08:00"}]})}>+ Añadir por Rango Horario</button>
+  </div>
+)}
 
                 {/* --- SECCIÓN PERMISOS --- */}
-                {tabActiva === 'Permisos' && (
-<div className="card" style={{borderTop:'3px solid #64748B'}}>
-  <label>📝 GESTIÓN DE PERMISOS</label>
-  {(user.permisos || []).filter(p => p && p.y === year).map(p => (
-    <div key={p.id} className="row-config">
-      <div className="inputs-group">
-        <input type="number" placeholder="Día" value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-        <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-        </select>
-        <input type="text" placeholder="Concepto" value={p.concepto || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
-      </div>
-      <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
-    </div>
-  ))}
-  <button className="btn-primary" style={{background:'#64748B'}} onClick={() => setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:""}]})}>+ Añadir Permiso</button>
-</div>
-                )}
+{tabActiva === 'Permisos' && (
+  <div className="card" style={{borderTop:'3px solid #64748B'}}>
+    <label>📝 GESTIÓN DE PERMISOS</label>
+    {(user.permisos || []).filter(p => p && p.y === year).map(p => {
+      // Calculamos días disponibles para este permiso según su mes
+      const diasDelMes = p.mes ? getDiasEnMes(p.mes, year) : 31;
+      
+      return (
+        <div key={p.id} className="row-config">
+          <div className="inputs-group">
+            {/* Selector de día dinámico */}
+            <select value={p.dia || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
+              <option value="" disabled>Día</option>
+              {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            
+            {/* Selector de mes */}
+            <select value={p.mes || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+              <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+            </select>
+            
+            <input type="text" placeholder="Concepto" value={p.concepto || ""} onChange={e => setUser({...user, permisos: user.permisos.map(x=>x.id===p.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
+          </div>
+          <button className="btn-del" onClick={() => setUser({...user, permisos: user.permisos.filter(x => x.id !== p.id)})}>🗑️ Borrar</button>
+        </div>
+      );
+    })}
+    <button className="btn-primary" style={{background:'#64748B'}} onClick={() => setUser({...user, permisos: [...(user.permisos || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:""}]})}>+ Añadir Permiso</button>
+  </div>
+)}
 
                 {/* --- SECCIÓN OTROS --- */}
-                {tabActiva === 'Otros' && (
-                <div className="card" style={{borderTop:'3px solid #06B6D4'}}>
-                  <label>💼 RECONOCIMIENTOS / CURSOS / COMISIONES</label>
-                  {(user.otros || []).filter(o => o && o.y === year).map(o => (
-                    <div key={o.id} className="row-config">
-                      <div className="inputs-group">
-                        <input type="number" placeholder="Día" value={o.dia || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}} />
-                        <select value={o.mes || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
-                          <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
-                        </select>
-                        <input type="text" placeholder="Concepto" value={o.concepto || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
-                        <input type="number" placeholder="Horas" value={o.horas || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
-                      </div>
-                      <button className="btn-del" onClick={() => setUser({...user, otros: user.otros.filter(x => x.id !== o.id)})}>🗑️ Borrar</button>
-                    </div>
-                  ))}
-                  <button className="btn-primary" style={{background:'#06B6D4'}} onClick={() => setUser({...user, otros: [...(user.otros || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]})}>+ Añadir Registro</button>
-                </div>
-                )} {/* Cierre del IF de Otros */}
+{tabActiva === 'Otros' && (
+  <div className="card" style={{borderTop:'3px solid #06B6D4'}}>
+    <label>💼 RECONOCIMIENTOS / CURSOS / COMISIONES</label>
+    
+    {(user.otros || []).filter(o => o && o.y === year).map(o => {
+      // 1. Definimos la constante de días ANTES del return
+      const diasDelMes = o.mes ? getDiasEnMes(o.mes, year) : 31;
+      
+      // 2. Usamos el return explícito
+      return (
+        <div key={o.id} className="row-config">
+          <div className="inputs-group">
+            {/* SELECTOR DÍA DINÁMICO */}
+            <select value={o.dia || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, dia:parseInt(e.target.value)}:x)})} style={{width:'55px'}}>
+              <option value="" disabled>Día</option>
+              {Array.from({length: diasDelMes}, (_, i) => i + 1).map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+            
+            <select value={o.mes || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, mes:parseInt(e.target.value)}:x)})} style={{flex:'1'}}>
+              <option value="" disabled>Mes</option>{MESES_NOM.map((m,i)=><option key={i} value={i+1}>{m}</option>)}
+            </select>
+            
+            <input type="text" placeholder="Concepto" value={o.concepto || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, concepto:e.target.value}:x)})} style={{flex:'2'}} />
+            <input type="number" placeholder="Horas" value={o.horas || ""} onChange={e => setUser({...user, otros: user.otros.map(x=>x.id===o.id?{...x, horas:parseInt(e.target.value)||0}:x)})} style={{width:'60px'}} />
+          </div>
+          <button className="btn-del" onClick={() => setUser({...user, otros: user.otros.filter(x => x.id !== o.id)})}>🗑️ Borrar</button>
+        </div>
+      );
+    })}
+    
+    <button className="btn-primary" style={{background:'#06B6D4'}} onClick={() => setUser({...user, otros: [...(user.otros || []), {id:Date.now(), y:year, dia:null, mes:null, concepto:"", horas:0}]})}>+ Añadir Registro</button>
+  </div>
+)} 
 
-                <button className="btn-danger" onClick={() => setShowGear(false)} style={{marginTop:'10px'}}>CERRAR PANEL</button>
-              </div>
-            </div>
-          )}
+{/* --- BOTÓN CERRAR Y MODALES SIGUIENTES --- */}
+<button className="btn-danger" onClick={() => setShowGear(false)} style={{marginTop:'10px'}}>CERRAR PANEL</button>
+</div>
+</div>
+)}
+
 {detallesBolsa && (
   <div className="modal" onClick={() => setDetallesBolsa(null)}>
     <div className="modal-content" onClick={e => e.stopPropagation()}>
